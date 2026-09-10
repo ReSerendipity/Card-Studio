@@ -195,6 +195,10 @@
   /* 卡名字色：gold=烫金，white=纯白，purple=淡紫，dark=深墨 */
   function paintTextColored(ctx, text, x, y, size, font, align, colorMode, alpha) {
     if (!text) return;
+    if (colorMode === 'gold') {
+      paintGoldText(ctx, text, x, y, size, font, align, alpha);
+      return;
+    }
     ctx.save();
     ctx.font = '700 ' + size + 'px ' + (font || 'Georgia, "SimSun", serif');
     ctx.textAlign = align || 'center';
@@ -206,13 +210,8 @@
       fill = '#FFFFFF'; stroke = 'rgba(20,20,30,0.85)';
     } else if (colorMode === 'purple') {
       fill = '#D8C8FF'; stroke = 'rgba(40,20,80,0.85)';
-    } else if (colorMode === 'dark') {
+    } else { // dark
       fill = '#2A2038'; stroke = 'rgba(255,255,255,0.6)';
-    } else {
-      // gold：走烫金渐变
-      paintGoldText(ctx, text, x, y, size, font, align, alpha);
-      ctx.restore();
-      return;
     }
     ctx.lineWidth = Math.max(3, size * 0.12);
     ctx.strokeStyle = stroke;
