@@ -36,7 +36,12 @@
     return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
 
-  function paintBackground(ctx, style, seed, bgColor) {
+  function paintBackground(ctx, style, seed, bgColor, bgImage) {
+    // 用户上传自定义背景图优先
+    if (bgImage) {
+      ctx.drawImage(bgImage, 0, 0, W, H);
+      return;
+    }
     var rnd = mulberry32(seed || 42);
     if (style === 'stars') {
       ctx.fillStyle = '#0E1220'; ctx.fillRect(0, 0, W, H);
@@ -108,28 +113,39 @@
   }
 
   /* ---------------- 边框 + 角饰（overlay） ---------------- */
-  function paintFrame(ctx) {
+  function paintFrame(ctx, borderStyle, showCorners) {
+    if (borderStyle === 'none') return;
+    var main = 'rgba(246,212,99,0.9)';        // 金
+    var sub = 'rgba(255,255,255,0.28)';
+    var corner = 'rgba(246,212,99,0.95)';
+    if (borderStyle === 'silver') {
+      main = 'rgba(212,220,232,0.9)'; sub = 'rgba(255,255,255,0.4)'; corner = 'rgba(212,220,232,0.9)';
+    } else if (borderStyle === 'rose') {
+      main = 'rgba(232,178,168,0.9)'; sub = 'rgba(255,255,255,0.35)'; corner = 'rgba(232,178,168,0.95)';
+    } else if (borderStyle === 'plain') {
+      main = 'rgba(255,255,255,0.55)'; sub = 'rgba(255,255,255,0.2)'; corner = null;
+    }
     ctx.save();
-    // 外框
     var r = 36;
-    ctx.strokeStyle = 'rgba(246,212,99,0.9)';
+    ctx.strokeStyle = main;
     ctx.lineWidth = 5;
     roundRectPath(ctx, 22, 22, W - 44, H - 44, r);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.strokeStyle = sub;
     ctx.lineWidth = 1.5;
     roundRectPath(ctx, 34, 34, W - 68, H - 68, r - 10);
     ctx.stroke();
-    // 四角装饰
-    var corners = [[22, 22], [W - 22 - 44, 22], [22, H - 22 - 44], [W - 22 - 44, H - 22 - 44]];
-    for (var i = 0; i < corners.length; i++) {
-      var cx = corners[i][0], cy = corners[i][1];
-      var g = ctx.createLinearGradient(cx, cy, cx + 44, cy + 44);
-      g.addColorStop(0, 'rgba(246,212,99,0.95)'); g.addColorStop(1, 'rgba(246,212,99,0.15)');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 44, cy); ctx.lineTo(cx + 44, cy + 14);
-      ctx.lineTo(cx + 14, cy + 14); ctx.lineTo(cx + 14, cy + 44); ctx.lineTo(cx, cy + 44); ctx.closePath();
-      ctx.fill();
+    if (showCorners && corner) {
+      var corners = [[22, 22], [W - 22 - 44, 22], [22, H - 22 - 44], [W - 22 - 44, H - 22 - 44]];
+      for (var i = 0; i < corners.length; i++) {
+        var cx = corners[i][0], cy = corners[i][1];
+        var g = ctx.createLinearGradient(cx, cy, cx + 44, cy + 44);
+        g.addColorStop(0, corner); g.addColorStop(1, corner.replace(/[\d.]+\)$/, '0.15)'));
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 44, cy); ctx.lineTo(cx + 44, cy + 14);
+        ctx.lineTo(cx + 14, cy + 14); ctx.lineTo(cx + 14, cy + 44); ctx.lineTo(cx, cy + 44); ctx.closePath();
+        ctx.fill();
+      }
     }
     ctx.restore();
   }
@@ -176,6 +192,36 @@
     }
   }
 
+  /* 卡名字色：gold=烫金，white=纯白，purple=淡紫，dark=深墨 */
+  function paintTextColored(ctx, text, x, y, size, font, align, colorMode, alpha) {
+    if (!text) return;
+    ctx.save();
+    ctx.font = '700 ' + size + 'px ' + (font || 'Georgia, "SimSun", serif');
+    ctx.textAlign = align || 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = alpha == null ? 1 : alpha;
+    ctx.lineJoin = 'round';
+    var fill, stroke;
+    if (colorMode === 'white') {
+      fill = '#FFFFFF'; stroke = 'rgba(20,20,30,0.85)';
+    } else if (colorMode === 'purple') {
+      fill = '#D8C8FF'; stroke = 'rgba(40,20,80,0.85)';
+    } else if (colorMode === 'dark') {
+      fill = '#2A2038'; stroke = 'rgba(255,255,255,0.6)';
+    } else {
+      // gold：走烫金渐变
+      paintGoldText(ctx, text, x, y, size, font, align, alpha);
+      ctx.restore();
+      return;
+    }
+    ctx.lineWidth = Math.max(3, size * 0.12);
+    ctx.strokeStyle = stroke;
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = fill;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
   /* ---------------- 主入口 ---------------- */
   /**
    * @param {object} p
@@ -193,20 +239,20 @@
   function build(p) {
     var face = makeCanvas();
     var fctx = face.getContext('2d');
-    paintBackground(fctx, p.bgStyle || 'gradient-a', p.seed || 42, p.bgColor);
+    paintBackground(fctx, p.bgStyle || 'gradient-a', p.seed || 42, p.bgColor, p.bgImage);
 
     // 主体：置于中部，区域尽可能大，按图片宽高比自适应（保持完整不裁切），支持手动缩放
     paintSubject(fctx, p.subject, 64, 180, W - 128, H - 300, p.subjectScale);
 
     var overlay = makeCanvas();
     var octx = overlay.getContext('2d');
-    paintFrame(octx);
+    paintFrame(octx, p.borderStyle || 'gold', p.showCorners !== false);
     paintRarity(octx, p.rarity);
 
     // 卡名（顶部）
     var nameSize = 52;
     if (p.name && p.name.length > 6) nameSize = Math.max(34, Math.floor(340 / p.name.length));
-    paintGoldText(octx, p.name, W / 2, 132, nameSize, fontStack(p.textFont), 'center');
+    paintTextColored(octx, p.name, W / 2, 132, nameSize, fontStack(p.textFont), 'center', p.nameColor || 'gold');
 
     // 编号（右下）
     paintGoldText(octx, p.no, W - 60, H - 72, 30, 'Georgia, "Microsoft YaHei", sans-serif', 'right', 0.95);

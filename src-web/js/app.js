@@ -31,8 +31,44 @@
   var state = {
     files: [],           // [{name, image, canvas}]
     generated: false,
-    frames: []           // [{face, overlay}]
+    frames: [],          // [{face, overlay}]
+    bgImage: null        // 用户上传的自定义背景图（Image）
   };
+
+  /* ---------------- 参数记忆（localStorage） ---------------- */
+  var PKEY = 'cardstudio-params';
+  var PARAM_IDS = ['card-name', 'card-no', 'card-rarity', 'bg-style', 'bg-color',
+                   'card-font', 'card-name-color', 'card-border', 'card-corners',
+                   'sl-subject', 'bg-seed', 'cutout-mode', 'model-quality'];
+  function saveParams() {
+    var o = {};
+    PARAM_IDS.forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      o[id] = (el.type === 'checkbox') ? el.checked : el.value;
+    });
+    try { localStorage.setItem(PKEY, JSON.stringify(o)); } catch (e) {}
+  }
+  function loadParams() {
+    var raw = null;
+    try { raw = localStorage.getItem(PKEY); } catch (e) {}
+    if (!raw) return;
+    try {
+      var o = JSON.parse(raw);
+      PARAM_IDS.forEach(function (id) {
+        if (o[id] == null) return;
+        var el = $(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!o[id];
+        else el.value = o[id];
+      });
+      $('subject-val').textContent = ($('sl-subject').value) + '%';
+    } catch (e) {}
+  }
+  PARAM_IDS.forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener('change', saveParams);
+  });
 
   /* ---------------- 上传 ---------------- */
   var dz = $('dropzone');
@@ -161,6 +197,10 @@
       seed: parseInt($('bg-seed').value, 10) || 42,
       bgColor: $('bg-color').value || '#4B2E7E',
       textFont: $('card-font').value || 'kai',
+      nameColor: $('card-name-color').value || 'gold',
+      borderStyle: $('card-border').value || 'gold',
+      showCorners: $('card-corners').checked,
+      bgImage: ($('bg-style').value === 'image') ? state.bgImage : null,
       subjectScale: (parseInt($('sl-subject').value, 10) || 100) / 100
     };
     // 读取每张图的自定义角度（0-359）
@@ -180,7 +220,7 @@
         return Cutout.cutout(f.image, mode, modelPath).then(function (subject) {
           setStatus('正在合成卡面 ' + (idx + 1) + '/' + total + '（角度 ' + angles[idx] + '°）…', '');
           setProgress(Math.round((idx + 1) / total * 100), true);
-          var built = Compose.build({ subject: subject, name: card.name, no: card.no, rarity: card.rarity, bgStyle: card.bgStyle, seed: card.seed + idx, bgColor: card.bgColor, textFont: card.textFont, subjectScale: card.subjectScale });
+          var built = Compose.build({ subject: subject, name: card.name, no: card.no, rarity: card.rarity, bgStyle: card.bgStyle, seed: card.seed + idx, bgColor: card.bgColor, textFont: card.textFont, nameColor: card.nameColor, borderStyle: card.borderStyle, showCorners: card.showCorners, bgImage: card.bgImage, subjectScale: card.subjectScale });
           frames.push({ face: built.face, overlay: built.overlay, angle: angles[idx] });
         }).catch(function (e) {
           setStatus('第 ' + (idx + 1) + ' 张处理失败：' + e.message, 'err');
@@ -197,6 +237,7 @@
       setStatus('生成完成：' + frames.length + ' 个视角。拖拽/滑动旋转查看，滑块调节效果，可导出。', 'ok');
       $('btn-export-png').disabled = false;
       $('btn-export-config').disabled = false;
+      $('btn-snap-view').disabled = false;
       $('viewer-hint').style.display = 'none';
     }).catch(function () {
       setProgress(0, false);
@@ -304,6 +345,73 @@
     setStatus('已导出 card-config.json。', 'ok');
   });
 
+  /* ---------------- 背景图上传 ---------------- */
+  $('bg-image').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        state.bgImage = img;
+        $('bg-style').value = 'image';
+        setStatus('已载入自定义背景图（' + f.name + '），生成时使用。', 'ok');
+      };
+      img.onerror = function () { setStatus('背景图读取失败。', 'err'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  /* ---------------- 随机骰子：换种子 ---------------- */
+  $('btn-random-seed').addEventListener('click', function () {
+    $('bg-seed').value = Math.floor(Math.random() * 99999);
+    saveParams();
+    setStatus('随机种子已换，请重新生成。', '');
+  });
+
+  /* ---------------- 复位视图 / 截图当前视角 ---------------- */
+  $('btn-viewer-reset').addEventListener('click', function () {
+    Viewer.resetView();
+    setStatus('视图已复位（角度 0°、缩放 1x）。', '');
+  });
+  $('btn-snap-view').addEventListener('click', function () {
+    if (!state.generated) { setStatus('请先生成闪卡。', 'err'); return; }
+    Viewer.captureCurrent().then(function (blob) {
+      if (!blob) { setStatus('截图失败。', 'err'); return; }
+      var deg = $('angle-indicator').textContent.match(/(\d+)°/);
+      downloadBlob(blob, 'card-view_' + (deg ? deg[1] : '0') + 'deg.png');
+      setStatus('已导出当前 3D 视角截图。', 'ok');
+    });
+  });
+
+  /* ---------------- 加载示例 ---------------- */
+  $('btn-load-sample').addEventListener('click', function () {
+    var samples = ['assets/samples/front.png', 'assets/samples/right.png',
+                   'assets/samples/back.png', 'assets/samples/left.png'];
+    var jobs = samples.map(function (p, k) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = function () { resolve({ name: p.split('/').pop(), image: img, angle: k * 90 }); };
+        img.onerror = function () { resolve(null); };
+        img.src = p;
+      });
+    });
+    Promise.all(jobs).then(function (items) {
+      items = items.filter(Boolean);
+      state.files = items;
+      state.generated = false;
+      state.frames = [];
+      Viewer.clearFrames();
+      renderFileList();
+      // 示例图角度写死 0/90/180/270
+      var inputs = document.querySelectorAll('.fi-angle');
+      inputs.forEach(function (inp, k) { if (items[k]) inp.value = items[k].angle; });
+      $('btn-generate').disabled = false;
+      setStatus('已载入 4 张示例视角图，点击「生成闪卡」体验。', 'ok');
+    });
+  });
+
   /* ---------------- 状态 ---------------- */
   function setStatus(msg, kind) {
     var el = $('status');
@@ -312,6 +420,7 @@
   }
 
   /* ---------------- 初始化 ---------------- */
+  loadParams();
   Viewer.init($('viewer'));
   if (typeof ort === 'undefined') {
     setStatus('警告：onnxruntime-web 未加载（检查 src-web/vendor/ort.min.js）。可改用「透明底直通」或「色键去白底」。', 'err');
