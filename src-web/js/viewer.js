@@ -31,7 +31,7 @@
     camera.position.set(0, 0, 7.2);
     camera.lookAt(0, 0, 0);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(renderer.domElement);
@@ -103,8 +103,10 @@
     // 双击复位
     canvasEl.addEventListener('dblclick', function () { resetView(); });
 
-    // 键盘 ←/→ 旋转（每格 6°）
+    // 键盘 ←/→ 旋转（每格 6°，输入框聚焦时不劫持）
     window.addEventListener('keydown', function (e) {
+      var tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') { group.rotation.y -= 6 * Math.PI / 180; e.preventDefault(); }
       else if (e.key === 'ArrowRight') { group.rotation.y += 6 * Math.PI / 180; e.preventDefault(); }
     });
