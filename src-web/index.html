@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Studio · 闪卡工坊</title>
+<link rel="stylesheet" href="src-web/css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 顶栏 -->
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-name">✦ Card Studio 闪卡工坊</span>
+      <span class="brand-sub">多视角 3D 立体旋转卡 · 无 LLM · 本地运行</span>
+    </div>
+    <div class="top-actions">
+      <button id="theme-toggle" class="theme-toggle" title="切换深色/浅色主题">🌙</button>
+      <button id="btn-export-png" class="btn" disabled>导出卡面 PNG</button>
+      <button id="btn-export-config" class="btn" disabled>导出配置 JSON</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 左侧控制面板 -->
+    <section id="panel">
+      <div class="panel-block">
+        <div class="panel-title">① 上传视角图（N 张，按文件名排序）</div>
+        <div id="dropzone" class="dropzone">
+          <input type="file" id="file-input" accept="image/*" multiple hidden>
+          <div class="dz-hint">点击选择 或 拖拽图片到此处<br><span class="dz-sub">默认 0°/90°/180°…均匀分布，可在列表内自定义每张角度</span></div>
+        </div>
+        <div id="file-list" class="file-list"></div>
+        <div class="file-actions">
+          <button id="btn-clear" class="btn btn-small" disabled>清空图片</button>
+        </div>
+      </div>
+
+      <div class="panel-block">
+        <div class="panel-title">② 抠图设置</div>
+        <label class="row"><span class="lbl">抠图方式</span>
+          <select id="cutout-mode">
+            <option value="model" selected>自动抠图（MODNet 模型）</option>
+            <option value="keep">透明底直通（原图已抠好）</option>
+            <option value="key">色键去白底（无模型降级）</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">模型精度</span>
+          <select id="model-quality">
+            <option value="assets/models/modnet.onnx" selected>通用平衡（MODNet FP32 · 25.9MB）</option>
+            <option value="assets/models/modnet_uint8.onnx">快速（MODNet INT8 · 6.6MB）</option>
+            <option value="assets/models/u2netp.onnx">轻量通用（U²-Net 便携 · 4.7MB）</option>
+            <option value="assets/models/isnet_anime.onnx">动漫最佳（ISNet-Anime · 176MB）</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="panel-block">
+        <div class="panel-title">③ 卡面参数</div>
+        <label class="row"><span class="lbl">卡名</span><input id="card-name" type="text" value="REZE" placeholder="卡名"></label>
+        <label class="row"><span class="lbl">编号</span><input id="card-no" type="text" value="No.001"></label>
+        <label class="row"><span class="lbl">稀有度</span>
+          <select id="card-rarity">
+            <option>N</option><option>R</option><option>SR</option><option selected>SSR</option><option>UR</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">背景样式</span>
+          <select id="bg-style">
+            <option value="gradient" selected>渐变（用下方颜色）</option>
+            <option value="stars">星空</option>
+            <option value="solid">纯色（用下方颜色）</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">背景颜色</span>
+          <input id="bg-color" type="color" value="#4B2E7E" title="渐变与纯色背景的主色">
+        </label>
+        <label class="row"><span class="lbl">卡面字体</span>
+          <select id="card-font">
+            <option value="kai" selected>楷体</option>
+            <option value="song">宋体</option>
+            <option value="hei">黑体</option>
+            <option value="fangsong">仿宋</option>
+            <option value="serif">经典衬线</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">主体大小</span>
+          <input id="sl-subject" type="range" min="50" max="150" value="100" style="flex:1">
+          <span id="subject-val" class="val">100%</span>
+        </label>
+        <label class="row"><span class="lbl">随机种子</span><input id="bg-seed" type="number" value="42" style="width:84px"></label>
+      </div>
+
+      <div class="panel-block">
+        <div class="panel-title">④ 生成与导出</div>
+        <button id="btn-generate" class="btn btn-primary">✦ 生成闪卡</button>
+        <div id="progress-wrap" class="progress-wrap" style="display:none">
+          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+          <span id="progress-pct" class="progress-pct">0%</span>
+        </div>
+        <div id="status" class="status">就绪：上传视角图后点击生成。</div>
+      </div>
+    </section>
+
+    <!-- 右侧查看器 -->
+    <section id="stage">
+      <div id="viewer" class="viewer">
+        <div id="viewer-hint" class="viewer-hint">生成后在此拖拽旋转卡片，查看不同视角</div>
+      </div>
+      <div id="controls" class="controls">
+        <label class="ctrl"><span>光泽</span><input id="sl-gloss" type="range" min="0" max="100" value="55"></label>
+        <label class="ctrl"><span>景深</span><input id="sl-depth" type="range" min="0" max="100" value="60"></label>
+        <label class="ctrl"><span>转速</span><input id="sl-speed" type="range" min="0" max="100" value="25"></label>
+        <button id="btn-autorotate" class="btn btn-small">自动旋转：关</button>
+      </div>
+      <div class="angle-jump">
+        <span class="aj-label">跳转角度</span>
+        <button class="btn btn-small" data-a="0">0°</button>
+        <button class="btn btn-small" data-a="90">90°</button>
+        <button class="btn btn-small" data-a="180">180°</button>
+        <button class="btn btn-small" data-a="270">270°</button>
+        <input id="angle-go" type="number" min="0" max="359" placeholder="角度" style="width:64px">
+        <button id="btn-angle-go" class="btn btn-small">跳转</button>
+      </div>
+      <div id="angle-indicator" class="angle-indicator">当前角度 0°</div>
+    </section>
+  </main>
+
+</div>
+
+<script src="src-web/vendor/three.min.js"></script>
+<script src="src-web/vendor/ort.min.js"></script>
+<script src="src-web/js/cutout.js"></script>
+<script src="src-web/js/compose.js"></script>
+<script src="src-web/js/viewer.js"></script>
+<script src="src-web/js/app.js"></script>
+</body>
+</html>
