@@ -1,0 +1,9 @@
+# Local OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Generated exports and temporary files
+src-web/exports/
+src-web/tmp/
+
