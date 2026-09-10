@@ -7,3 +7,11 @@ Thumbs.db
 src-web/exports/
 src-web/tmp/
 
+# Large binaries (models + wasm + screenshots) — not for git
+*.onnx
+*.wasm
+docs/**/*.png
+docs/*.png
+
+# Node
+node_modules/
