@@ -70,10 +70,14 @@
             <option value="gradient" selected>渐变（用下方颜色）</option>
             <option value="stars">星空</option>
             <option value="solid">纯色（用下方颜色）</option>
+            <option value="image">自定义背景图（上传）</option>
           </select>
         </label>
         <label class="row"><span class="lbl">背景颜色</span>
           <input id="bg-color" type="color" value="#4B2E7E" title="渐变与纯色背景的主色">
+        </label>
+        <label class="row"><span class="lbl">背景图</span>
+          <input id="bg-image" type="file" accept="image/*" title="选择一张图作卡面背景">
         </label>
         <label class="row"><span class="lbl">卡面字体</span>
           <select id="card-font">
@@ -84,16 +88,40 @@
             <option value="serif">经典衬线</option>
           </select>
         </label>
+        <label class="row"><span class="lbl">卡名字色</span>
+          <select id="card-name-color">
+            <option value="gold" selected>烫金</option>
+            <option value="white">纯白</option>
+            <option value="purple">淡紫</option>
+            <option value="dark">深墨</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">边框样式</span>
+          <select id="card-border">
+            <option value="gold" selected>金边</option>
+            <option value="silver">银边</option>
+            <option value="rose">玫瑰金</option>
+            <option value="plain">素线</option>
+            <option value="none">无边框</option>
+          </select>
+        </label>
+        <label class="row"><span class="lbl">角饰</span>
+          <input id="card-corners" type="checkbox" checked style="width:auto">
+        </label>
         <label class="row"><span class="lbl">主体大小</span>
           <input id="sl-subject" type="range" min="50" max="150" value="100" style="flex:1">
           <span id="subject-val" class="val">100%</span>
         </label>
-        <label class="row"><span class="lbl">随机种子</span><input id="bg-seed" type="number" value="42" style="width:84px"></label>
+        <label class="row"><span class="lbl">随机种子</span>
+          <input id="bg-seed" type="number" value="42" style="width:84px">
+          <button id="btn-random-seed" class="btn btn-small" title="随机换一个种子">🎲</button>
+        </label>
       </div>
 
       <div class="panel-block">
         <div class="panel-title">④ 生成与导出</div>
         <button id="btn-generate" class="btn btn-primary">✦ 生成闪卡</button>
+        <button id="btn-load-sample" class="btn btn-small" title="载入内置示例图快速体验">加载示例</button>
         <div id="progress-wrap" class="progress-wrap" style="display:none">
           <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
           <span id="progress-pct" class="progress-pct">0%</span>
@@ -105,13 +133,15 @@
     <!-- 右侧查看器 -->
     <section id="stage">
       <div id="viewer" class="viewer">
-        <div id="viewer-hint" class="viewer-hint">生成后在此拖拽旋转卡片，查看不同视角</div>
+        <div id="viewer-hint" class="viewer-hint">生成后拖拽旋转 · 滚轮缩放看细节 · 放大后可拖动平移 · 双击复位</div>
       </div>
       <div id="controls" class="controls">
         <label class="ctrl"><span>光泽</span><input id="sl-gloss" type="range" min="0" max="100" value="55"></label>
         <label class="ctrl"><span>景深</span><input id="sl-depth" type="range" min="0" max="100" value="60"></label>
         <label class="ctrl"><span>转速</span><input id="sl-speed" type="range" min="0" max="100" value="25"></label>
         <button id="btn-autorotate" class="btn btn-small">自动旋转：关</button>
+        <button id="btn-viewer-reset" class="btn btn-small" title="复位角度/缩放/平移（双击画面也可）">⟲ 复位视图</button>
+        <button id="btn-snap-view" class="btn btn-small" disabled title="导出当前 3D 视角 PNG（含光泽）">📷 截图当前视角</button>
       </div>
       <div class="angle-jump">
         <span class="aj-label">跳转角度</span>

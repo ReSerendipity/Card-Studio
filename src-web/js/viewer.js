@@ -14,11 +14,15 @@
   var frames = [];          // [{face:canvas, overlay:canvas, angle:number}]
   var texW = 384, texH = 512;
 
-  var dragging = false, lastX = 0, velX = 0, lastMoveT = 0;
+  var dragging = false, lastX = 0, lastY = 0, velX = 0, lastMoveT = 0;
   var autoRotate = false, speed = 0.6;   // 弧度/秒
   var depth = 0.25, gloss = 0.55;
   var onAngle = null;
   var running = false;
+  var zoom = 1.0;           // 缩放倍率（camera z = 7.2 / zoom）
+  var panX = 0, panY = 0;   // 平移偏移
+  var mode = 'rotate';      // 拖拽模式：rotate=旋转卡片，pan=平移视角（放大后）
+  var DEFAULT_CAM_Z = 7.2;
 
   function init(el) {
     container = el;
@@ -60,21 +64,44 @@
     renderer.domElement.style.cursor = 'grab';
     var canvasEl = renderer.domElement;
     canvasEl.addEventListener('pointerdown', function (e) {
-      dragging = true; lastX = e.clientX; lastMoveT = performance.now();
-      velX = 0; canvasEl.style.cursor = 'grabbing';
+      dragging = true; lastX = e.clientX; lastY = e.clientY; lastMoveT = performance.now();
+      velX = 0;
+      // 放大超过 1.35x 或按住 Alt → 平移模式
+      mode = (zoom > 1.35 || e.altKey) ? 'pan' : 'rotate';
+      canvasEl.style.cursor = 'grabbing';
       canvasEl.setPointerCapture && canvasEl.setPointerCapture(e.pointerId);
     });
     canvasEl.addEventListener('pointermove', function (e) {
       if (!dragging) return;
       var dx = e.clientX - lastX;
+      var dy = e.clientY - lastY;
       var now = performance.now();
       var dt = Math.max(1, now - lastMoveT);
-      velX = dx / dt;               // 像素/毫秒 → 用于惯性
-      group.rotation.y += dx * 0.006;
-      lastX = e.clientX; lastMoveT = now;
+      if (mode === 'pan') {
+        panX += dx * 0.008;
+        panY -= dy * 0.008;
+        group.position.x = panX;
+        group.position.y = panY;
+      } else {
+        velX = dx / dt;
+        group.rotation.y += dx * 0.006;
+      }
+      lastX = e.clientX; lastY = e.clientY; lastMoveT = now;
     });
-    canvasEl.addEventListener('pointerup', function () { dragging = false; canvasEl.style.cursor = 'grab'; });
+    canvasEl.addEventListener('pointerup', function () { dragging = false; canvasEl.style.cursor = zoom > 1.35 ? 'move' : 'grab'; });
     canvasEl.addEventListener('pointerleave', function () { dragging = false; });
+
+    // 滚轮缩放
+    canvasEl.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoom = Math.min(3.5, Math.max(0.6, zoom * factor));
+      camera.position.z = DEFAULT_CAM_Z / zoom;
+      canvasEl.style.cursor = zoom > 1.35 ? 'move' : 'grab';
+    }, { passive: false });
+
+    // 双击复位
+    canvasEl.addEventListener('dblclick', function () { resetView(); });
 
     // 键盘 ←/→ 旋转（每格 6°）
     window.addEventListener('keydown', function (e) {
@@ -99,6 +126,27 @@
   /** 微调角度（键盘用，单位：度） */
   function nudge(deltaDeg) {
     group.rotation.y += deltaDeg * Math.PI / 180;
+  }
+
+  /** 复位视角：角度回 0°、缩放 1x、平移居中 */
+  function resetView() {
+    group.rotation.y = 0;
+    zoom = 1.0;
+    camera.position.z = DEFAULT_CAM_Z;
+    panX = 0; panY = 0;
+    group.position.x = 0; group.position.y = 0;
+    var c = renderer && renderer.domElement;
+    if (c) c.style.cursor = 'grab';
+    paintMix();
+  }
+
+  /** 导出当前查看器视角（含光泽/角度）为 PNG Blob */
+  function captureCurrent() {
+    if (!renderer) return Promise.reject(new Error('viewer not ready'));
+    renderer.render(scene, camera);
+    return new Promise(function (resolve) {
+      renderer.domElement.toBlob(function (b) { resolve(b); }, 'image/png');
+    });
   }
 
   function resize() {
@@ -226,6 +274,7 @@
     setFrames: setFrames, clearFrames: clearFrames,
     setDepth: setDepth, setGloss: setGloss, setSpeed: setSpeed,
     toggleAuto: toggleAuto, setAngle: setAngle, nudge: nudge,
+    resetView: resetView, captureCurrent: captureCurrent,
     set onAngle(fn) { onAngle = fn; }
   };
 })(window);
