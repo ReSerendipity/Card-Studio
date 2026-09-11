@@ -216,6 +216,14 @@
     var chain = Promise.resolve();
     state.files.forEach(function (f, idx) {
       chain = chain.then(function () {
+        if (card.bgStyle === 'pure') {
+          // 纯图直通：跳过抠图，原图直接贴卡面
+          setStatus('合成卡面 ' + (idx + 1) + '/' + total + '（纯图直通，角度 ' + angles[idx] + '°）…', '');
+          setProgress(Math.round((idx + 1) / total * 100), true);
+          var built = Compose.build({ rawImage: f.image });
+          frames.push({ face: built.face, overlay: built.overlay, angle: angles[idx] });
+          return Promise.resolve();
+        }
         setStatus('正在抠图 ' + (idx + 1) + '/' + total + '（' + f.name + '）…', '');
         return Cutout.cutout(f.image, mode, modelPath).then(function (subject) {
           setStatus('正在合成卡面 ' + (idx + 1) + '/' + total + '（角度 ' + angles[idx] + '°）…', '');
