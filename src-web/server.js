@@ -59,6 +59,27 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 4173;
+
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    // 端口已被占：多半是已经有一个 Card Studio 在跑
+    // 探测一下能否访问，能通就友好提示，不要 crash
+    http.get('http://127.0.0.1:' + PORT + '/', (res) => {
+      console.log('');
+      console.log('端口 ' + PORT + ' 已被占用——Card Studio 看起来已经在运行了。');
+      console.log('直接打开浏览器访问：http://127.0.0.1:' + PORT + '/');
+      console.log('（无需重复启动。如要重启，关掉之前的命令行窗口再试。）');
+      process.exit(0);
+    }).on('error', () => {
+      console.error('端口 ' + PORT + ' 被其他程序占用，无法启动。');
+      console.error('请先关闭占用该端口的程序，或用 set PORT=xxxx 后重试。');
+      process.exit(1);
+    });
+    return;
+  }
+  throw e;
+});
+
 server.listen(PORT, '127.0.0.1', () => {
   console.log('Card Studio 已启动：http://127.0.0.1:' + PORT);
   console.log('按 Ctrl+C 停止服务');
