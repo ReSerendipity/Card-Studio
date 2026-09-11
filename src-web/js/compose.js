@@ -238,6 +238,17 @@
   function build(p) {
     var face = makeCanvas();
     var fctx = face.getContext('2d');
+
+    // 纯图直通：用户上传的图直接铺满卡面，不画背景/边框/文字/合成
+    if (p.rawImage) {
+      var iw = p.rawImage.width, ih = p.rawImage.height;
+      var s = Math.max(W / iw, H / ih);  // cover：填满，裁两边
+      var dw = iw * s, dh = ih * s;
+      fctx.imageSmoothingQuality = 'high';
+      fctx.drawImage(p.rawImage, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      return { face: face, overlay: makeCanvas() };  // overlay 全透明
+    }
+
     paintBackground(fctx, p.bgStyle || 'gradient-a', p.seed || 42, p.bgColor, p.bgImage);
 
     // 主体：置于中部，区域尽可能大，按图片宽高比自适应（保持完整不裁切），支持手动缩放
