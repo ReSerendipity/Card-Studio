@@ -4,8 +4,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// 服务根目录 = 项目根（card-studio/）
-const ROOT = path.resolve(__dirname, '..');
+// 服务根目录 = src-web/（与 Tauri 打包后的前端根一致）
+const ROOT = __dirname;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -27,7 +27,7 @@ const MIME = {
 const server = http.createServer((req, res) => {
   try {
     let urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
-    if (urlPath === '/') urlPath = '/src-web/index.html';
+    if (urlPath === '/') urlPath = '/index.html';
     const fp = path.normalize(path.join(ROOT, urlPath));
     if (!fp.startsWith(ROOT)) {
       res.writeHead(403); res.end('Forbidden'); return;
