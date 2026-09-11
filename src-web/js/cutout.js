@@ -15,16 +15,21 @@
   var loadingPath = null;  // 加载中的模型路径（防并发重复加载）
   var wasmPathsSet = false;
 
-  /* 模型配置表：path → 输入边长（MODNet 256 / ISNet 1024 / U²-Net 320） */
+  /* 模型配置表：path → 输入边长 + 归一化方式
+     norm='pm11'   : (x/255 - 0.5) / 0.5   ← MODNet / U²-Net（rembg 默认）
+     norm='imagenet': (x/255 - mean) / std  ← ISNet 官方（ImageNet mean/std） */
   var MODEL_CONFIG = {
-    'assets/models/modnet.onnx': { size: 256 },
-    'assets/models/modnet_uint8.onnx': { size: 256 },
-    'assets/models/u2netp.onnx': { size: 320 },
-    'assets/models/isnet_anime.onnx': { size: 1024 }
+    'assets/models/modnet.onnx': { size: 256, norm: 'pm11' },
+    'assets/models/u2netp.onnx': { size: 320, norm: 'pm11' },
+    'assets/models/isnet_anime.onnx': { size: 1024, norm: 'imagenet' }
   };
   function modelSize(path) {
     var c = MODEL_CONFIG[path];
     return c ? c.size : 256;
+  }
+  function modelNorm(path) {
+    var c = MODEL_CONFIG[path];
+    return c ? c.norm : 'pm11';
   }
 
   function ensureWasmPaths() {
@@ -88,16 +93,26 @@
     return false;
   }
 
-  /* ---------------- MODNet / ISNet 推理（输入尺寸参数化） ---------------- */
-  function canvasToTensor(cv, s) {
+  /* ---------------- 推理预处理（按模型选择归一化） ---------------- */
+  function canvasToTensor(cv, s, norm) {
     var ctx = cv.getContext('2d');
     var d = ctx.getImageData(0, 0, s, s).data;
     var n = s * s;
     var input = new Float32Array(3 * n);
-    for (var i = 0; i < n; i++) {
-      input[i] = (d[i * 4] / 255 - 0.5) / 0.5;
-      input[n + i] = (d[i * 4 + 1] / 255 - 0.5) / 0.5;
-      input[2 * n + i] = (d[i * 4 + 2] / 255 - 0.5) / 0.5;
+    if (norm === 'imagenet') {
+      var meanR = 0.485, meanG = 0.456, meanB = 0.406;
+      var stdR = 0.229, stdG = 0.224, stdB = 0.225;
+      for (var i = 0; i < n; i++) {
+        input[i]     = (d[i * 4]     / 255 - meanR) / stdR;
+        input[n + i] = (d[i * 4 + 1] / 255 - meanG) / stdG;
+        input[2 * n + i] = (d[i * 4 + 2] / 255 - meanB) / stdB;
+      }
+    } else {
+      for (var j = 0; j < n; j++) {
+        input[j]     = (d[j * 4]     / 255 - 0.5) / 0.5;
+        input[n + j] = (d[j * 4 + 1] / 255 - 0.5) / 0.5;
+        input[2 * n + j] = (d[j * 4 + 2] / 255 - 0.5) / 0.5;
+      }
     }
     return input;
   }
@@ -127,7 +142,7 @@
       var ctx = cv.getContext('2d');
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(image, 0, 0, s, s);
-      var input = canvasToTensor(cv, s);
+      var input = canvasToTensor(cv, s, modelNorm(modelPath));
       var inputName = sess.inputNames[0];
       var feeds = {};
       feeds[inputName] = new global.ort.Tensor('float32', input, [1, 3, s, s]);
