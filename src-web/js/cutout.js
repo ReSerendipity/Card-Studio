@@ -32,7 +32,7 @@
     wasmPathsSet = true;
     try {
       if (global.ort && global.ort.env && global.ort.env.wasm) {
-        global.ort.env.wasm.wasmPaths = 'src-web/vendor/';
+        global.ort.env.wasm.wasmPaths = 'vendor/';
         global.ort.env.wasm.numThreads = 1;
       }
     } catch (e) { /* 忽略 */ }
