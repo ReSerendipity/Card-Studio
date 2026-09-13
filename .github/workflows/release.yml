@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows (nsis / msi)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Install frontend deps
+        working-directory: src-web
+        run: npm install
+
+      - name: Build & publish Windows installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Card Studio ${{ github.ref_name }}"
+          releaseBody: |
+            ## Card Studio ${{ github.ref_name }}
+            - Windows 安装包：`.msi` / `.exe`(nsis)
+            - Android 测试包（debug 签名 APK）见同版本 Assets
+          releaseDraft: false
+          prerelease: false
+
+  android:
+    name: Android (debug APK)
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;27.0.12077973"
+
+      - name: Frontend deps
+        working-directory: src-web
+        run: npm install
+
+      - name: Tauri Android init
+        run: cargo tauri android init --app-name "Card Studio" --domain "com.cardstudio.app"
+
+      - name: Build Android APK (debug)
+        run: cargo tauri android build --apk
+
+      - name: Upload APK to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          fail_on_unmatched_files: false

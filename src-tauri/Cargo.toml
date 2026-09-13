@@ -1,6 +1,6 @@
 [package]
 name = "card-studio"
-version = "0.1.0"
+version = "1.0.0"
 description = "Card Studio · 多视角 3D 闪卡工坊"
 authors = ["Doro"]
 edition = "2021"
