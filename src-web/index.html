@@ -48,8 +48,9 @@
         </label>
         <label class="row"><span class="lbl">模型精度</span>
           <select id="model-quality">
-            <option value="assets/models/modnet.onnx" selected>通用平衡（MODNet · 25MB）</option>
-            <option value="assets/models/u2netp.onnx">轻量通用（U²-Net · 4.7MB）</option>
+            <option value="assets/models/modnet.onnx" selected>通用平衡（MODNet · 25MB · 离线）</option>
+            <option value="assets/models/u2netp.onnx">轻量通用（U²-Net · 4.7MB · 离线）</option>
+            <option value="imgly">高精度 ISNet（imgly · 首次需联网 · WebGPU加速）</option>
           </select>
         </label>
       </div>
@@ -68,6 +69,9 @@
             <option value="gradient" selected>渐变（用下方颜色）</option>
             <option value="stars">星空</option>
             <option value="solid">纯色（用下方颜色）</option>
+            <option value="holo-rainbow">全息·彩虹闪</option>
+            <option value="holo-cosmos">全息·宇宙闪</option>
+            <option value="holo-reverse">全息·反向闪</option>
             <option value="image">自定义背景图（上传）</option>
             <option value="pure">纯图直通（不合成，原图直接贴卡）</option>
           </select>
@@ -136,6 +140,7 @@
       </div>
       <div id="controls" class="controls">
         <label class="ctrl"><span>光泽</span><input id="sl-gloss" type="range" min="0" max="100" value="55"></label>
+        <label class="ctrl"><span>箔面</span><input id="sl-foil" type="range" min="0" max="100" value="0"></label>
         <label class="ctrl"><span>景深</span><input id="sl-depth" type="range" min="0" max="100" value="60"></label>
         <label class="ctrl"><span>转速</span><input id="sl-speed" type="range" min="0" max="100" value="25"></label>
         <button id="btn-autorotate" class="btn btn-small">自动旋转：关</button>

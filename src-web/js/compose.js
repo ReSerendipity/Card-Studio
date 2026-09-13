@@ -36,6 +36,137 @@
     return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
 
+  /* 程序化噪点：生成一张带随机颗粒的 canvas（模拟 SVG feTurbulence） */
+  function makeNoiseCanvas(w, h, seed, alpha) {
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    var ctx = cv.getContext('2d');
+    var img = ctx.createImageData(w, h);
+    var rnd = mulberry32(seed || 7);
+    for (var i = 0; i < img.data.length; i += 4) {
+      var v = Math.floor(rnd() * 255);
+      img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v;
+      img.data[i + 3] = Math.floor((alpha || 0.06) * 255);
+    }
+    ctx.putImageData(img, 0, 0);
+    return cv;
+  }
+
+  /* 彩虹光谱渐变：7 色 conic 效果的线性近似 */
+  function rainbowGradient(ctx, x0, y0, x1, y1) {
+    var g = ctx.createLinearGradient(x0, y0, x1, y1);
+    var stops = ['#FF0040', '#FF8C00', '#FFD700', '#00E676', '#00B0FF', '#3D5AFE', '#D500F9'];
+    stops.forEach(function (c, i) { g.addColorStop(i / (stops.length - 1), c); });
+    return g;
+  }
+
+  /* 全息背景：彩虹闪 holo-rainbow */
+  function paintHoloRainbow(ctx, seed) {
+    // 深色底
+    ctx.fillStyle = '#0A0A14'; ctx.fillRect(0, 0, W, H);
+    // 光栅条纹（repeating-linear-gradient 的 Canvas 近似）
+    ctx.save();
+    ctx.globalCompositeOperation = 'color-dodge';
+    var stripeW = 6;
+    for (var x = -H; x < W + H; x += stripeW * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.lineTo(x + H + stripeW, H); ctx.lineTo(x + stripeW, 0);
+      ctx.closePath();
+      var hue = ((x + H) / (W + H * 2) * 360 + seed * 10) % 360;
+      ctx.fillStyle = 'hsla(' + hue + ', 90%, 55%, 0.35)';
+      ctx.fill();
+    }
+    ctx.restore();
+    // 彩虹大渐变叠加
+    ctx.save();
+    ctx.globalCompositeOperation = 'color-dodge';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = rainbowGradient(ctx, 0, 0, W, H);
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    // 噪点颗粒
+    var noise = makeNoiseCanvas(W / 2, H / 2, seed, 0.05);
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(noise, 0, 0, W, H);
+    ctx.restore();
+    // 顶部高光
+    var hg = ctx.createLinearGradient(0, 0, 0, H * 0.4);
+    hg.addColorStop(0, 'rgba(255,255,255,0.08)'); hg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hg; ctx.fillRect(0, 0, W, H * 0.4);
+  }
+
+  /* 全息背景：宇宙闪 holo-cosmos */
+  function paintHoloCosmos(ctx, seed) {
+    var rnd = mulberry32(seed || 99);
+    // 深蓝紫底
+    var bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#0D0D2B'); bg.addColorStop(0.5, '#1A0A3D'); bg.addColorStop(1, '#0A0A1A');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    // 星云团
+    for (var n = 0; n < 6; n++) {
+      var nx = rnd() * W, ny = rnd() * H, nr = 120 + rnd() * 200;
+      var hues = ['#7B2FBE', '#2F6BFF', '#FF2F8C', '#00C9A7'];
+      var ng = ctx.createRadialGradient(nx, ny, 5, nx, ny, nr);
+      ng.addColorStop(0, hues[n % hues.length].replace(')', ',0.25)').replace('#', ''));
+      ng.addColorStop(0, 'rgba(' + parseInt(hues[n % hues.length].substr(1,2),16) + ',' + parseInt(hues[n % hues.length].substr(3,2),16) + ',' + parseInt(hues[n % hues.length].substr(5,2),16) + ',0.22)');
+      ng.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = ng; ctx.fillRect(0, 0, W, H);
+    }
+    // 星星
+    for (var i = 0; i < 180; i++) {
+      var sx = rnd() * W, sy = rnd() * H, sr = 0.3 + rnd() * 1.2;
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.3 + rnd() * 0.7).toFixed(2) + ')';
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+    }
+    // 彩虹全息覆盖（color-burn 产生深邃感）
+    ctx.save();
+    ctx.globalCompositeOperation = 'color-burn';
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = rainbowGradient(ctx, 0, H, W, 0);
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    // 噪点
+    var noise = makeNoiseCanvas(W / 2, H / 2, seed + 1, 0.04);
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(noise, 0, 0, W, H);
+    ctx.restore();
+  }
+
+  /* 全息背景：反向闪 holo-reverse（边框区域有箔面，主体区深色） */
+  function paintHoloReverse(ctx, seed) {
+    // 深色主体区
+    ctx.fillStyle = '#12121F'; ctx.fillRect(0, 0, W, H);
+    // 箔面边框带（模拟 reverse holo 的边框全息）
+    var m = 48; // 边框宽度
+    ctx.save();
+    ctx.globalCompositeOperation = 'color-dodge';
+    var stripeW = 5;
+    for (var x = -H; x < W + H; x += stripeW * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.lineTo(x + H + stripeW, H); ctx.lineTo(x + stripeW, 0);
+      ctx.closePath();
+      var hue = ((x + H) / (W + H * 2) * 360 + seed * 15) % 360;
+      ctx.fillStyle = 'hsla(' + hue + ', 85%, 60%, 0.5)';
+      ctx.fill();
+    }
+    ctx.restore();
+    // 挖空中间主体区（覆盖深色，只留边框箔面）
+    ctx.fillStyle = '#12121F';
+    ctx.fillRect(m, m, W - m * 2, H - m * 2);
+    // 主体区微弱渐变
+    var ig = ctx.createRadialGradient(W / 2, H / 2, 50, W / 2, H / 2, H * 0.6);
+    ig.addColorStop(0, 'rgba(80,60,140,0.25)'); ig.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = ig; ctx.fillRect(m, m, W - m * 2, H - m * 2);
+    // 噪点
+    var noise = makeNoiseCanvas(W / 2, H / 2, seed + 2, 0.04);
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(noise, 0, 0, W, H);
+    ctx.restore();
+  }
+
   function paintBackground(ctx, style, seed, bgColor, bgImage) {
     // 用户上传自定义背景图优先
     if (bgImage) {
@@ -43,7 +174,13 @@
       return;
     }
     var rnd = mulberry32(seed || 42);
-    if (style === 'stars') {
+    if (style === 'holo-rainbow') {
+      paintHoloRainbow(ctx, seed);
+    } else if (style === 'holo-cosmos') {
+      paintHoloCosmos(ctx, seed);
+    } else if (style === 'holo-reverse') {
+      paintHoloReverse(ctx, seed);
+    } else if (style === 'stars') {
       ctx.fillStyle = '#0E1220'; ctx.fillRect(0, 0, W, H);
       for (var i = 0; i < 240; i++) {
         var x = rnd() * W, y = rnd() * H, r = 0.4 + rnd() * 1.4;

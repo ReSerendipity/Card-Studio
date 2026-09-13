@@ -227,11 +227,76 @@
     return cutoutWithModel(image, modelPath);
   }
 
+  /* ---------------- imgly/background-removal（可选高精度引擎） ---------------- */
+  var imglyModule = null;   // 缓存动态 import 的模块
+  var imglyLoading = null;  // 加载中的 Promise（防重复）
+  var IMLGY_CDN = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
+
+  function loadImgly() {
+    if (imglyModule) return Promise.resolve(imglyModule);
+    if (imglyLoading) return imglyLoading;
+    imglyLoading = import(IMLGY_CDN).then(function (mod) {
+      imglyModule = mod;
+      imglyLoading = null;
+      return mod;
+    }).catch(function (e) {
+      imglyLoading = null;
+      throw new Error('imgly 引擎加载失败（需联网）：' + e.message);
+    });
+    return imglyLoading;
+  }
+
+  /**
+   * imgly 高精度抠图：基于 ISNet，支持 WebGPU/WASM，输出 RGBA PNG
+   * 首次使用需联网下载模型（~40MB），后续浏览器缓存
+   * @param {HTMLImageElement} image
+   * @returns {Promise<HTMLCanvasElement>}
+   */
+  function cutoutWithImgly(image) {
+    return loadImgly().then(function (mod) {
+      var src = image.src || image.currentSrc;
+      if (!src) {
+        // 没有 src 时转成 Blob
+        var cv = document.createElement('canvas');
+        cv.width = image.naturalWidth || image.width;
+        cv.height = image.naturalHeight || image.height;
+        cv.getContext('2d').drawImage(image, 0, 0);
+        return new Promise(function (resolve, reject) {
+          cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('canvas toBlob 失败')); }, 'image/png');
+        });
+      }
+      return src;
+    }).then(function (source) {
+      return imglyModule.removeBackground(source, {
+        output: { format: 'image/png', quality: 0.95 },
+        progress: function (key, current, total) {
+          // 进度回调可用于 UI 提示，此处静默
+        }
+      });
+    }).then(function (blob) {
+      return new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          var cv = document.createElement('canvas');
+          cv.width = img.naturalWidth;
+          cv.height = img.naturalHeight;
+          cv.getContext('2d').drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          resolve(cv);
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('imgly 结果解码失败')); };
+        img.src = url;
+      });
+    });
+  }
+
   global.Cutout = {
     cutout: cutout,
     loadModel: loadModel,
     disposeModel: disposeModel,
     hasSession: hasSession,
-    hasAlpha: hasAlpha
+    hasAlpha: hasAlpha,
+    cutoutWithImgly: cutoutWithImgly
   };
 })(window);

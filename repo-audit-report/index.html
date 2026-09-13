@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Studio · 开源仓库对标分析报告</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='15' y='10' width='55' height='80' rx='6' fill='%231a1a2e' stroke='%23d4af37' stroke-width='3'/><rect x='30' y='25' width='55' height='80' rx='6' fill='%2316213e' stroke='%23d4af37' stroke-width='3' opacity='0.9'/></svg>">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --bg:#0d0d14;--bg2:#14141f;--card:#1a1a28;--card2:#20202e;
+  --gold:#d4af37;--gold2:#f0d77e;--text:#e8e6e0;--muted:#9a98a8;
+  --border:#2a2a3a;--accent:#6c8cff;--green:#4ade80;--orange:#fb923c;--red:#f87171;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',system-ui,sans-serif;line-height:1.7;font-size:15px}
+h1,h2,h3,h4{font-family:'Noto Serif SC',serif;font-weight:700}
+a{color:var(--gold2);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* Hero */
+.hero{background:linear-gradient(160deg,#1a1a2e 0%,#0d0d14 60%);border-bottom:1px solid var(--border);padding:60px 0 50px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(212,175,55,0.08) 0%,transparent 70%);pointer-events:none}
+.hero .tag{display:inline-block;padding:4px 14px;border:1px solid var(--gold);color:var(--gold);border-radius:20px;font-size:12px;letter-spacing:2px;margin-bottom:18px}
+.hero h1{font-size:38px;line-height:1.3;margin-bottom:14px;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--muted);font-size:16px;max-width:700px}
+.hero .meta{margin-top:24px;display:flex;gap:32px;flex-wrap:wrap}
+.hero .meta div{font-size:13px;color:var(--muted)}
+.hero .meta strong{color:var(--text);font-size:22px;display:block;font-family:'Noto Serif SC',serif}
+
+/* Sections */
+section{padding:48px 0;border-bottom:1px solid var(--border)}
+section h2{font-size:26px;margin-bottom:8px;color:var(--gold2)}
+section .sub{color:var(--muted);font-size:14px;margin-bottom:32px}
+
+/* Summary cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center}
+.stat-card .num{font-size:32px;font-weight:700;font-family:'Noto Serif SC',serif;color:var(--gold)}
+.stat-card .label{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* Repo cards */
+.repo-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:20px;position:relative;transition:border-color .2s}
+.repo-card:hover{border-color:var(--gold)}
+.repo-card .rank{position:absolute;bottom:16px;right:24px;font-size:42px;font-weight:900;font-family:'Noto Serif SC',serif;color:rgba(212,175,55,0.1);line-height:1;pointer-events:none}
+.repo-card h3{font-size:20px;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.repo-card h3 .badge{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;font-family:'Noto Sans SC',sans-serif}
+.badge-high{background:rgba(74,222,128,0.15);color:var(--green)}
+.badge-mid{background:rgba(251,146,60,0.15);color:var(--orange)}
+.repo-card .url{font-size:13px;color:var(--accent);margin-bottom:14px;word-break:break-all}
+.repo-card .desc{color:var(--muted);font-size:14px;margin-bottom:16px}
+.repo-card .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.repo-card .block h4{font-size:13px;color:var(--gold);margin-bottom:6px;font-family:'Noto Sans SC',sans-serif;font-weight:600;letter-spacing:1px}
+.repo-card .block ul{list-style:none;padding:0}
+.repo-card .block li{font-size:13px;color:var(--text);padding:3px 0;padding-left:16px;position:relative}
+.repo-card .block li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;background:var(--gold);border-radius:50%}
+.repo-card .tech-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.repo-card .tech-tags span{font-size:11px;padding:2px 8px;background:var(--card2);border:1px solid var(--border);border-radius:4px;color:var(--muted)}
+
+/* Charts */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.chart-box h4{font-size:14px;color:var(--gold);margin-bottom:12px;text-align:center;font-family:'Noto Sans SC',sans-serif}
+.chart{width:100%;height:340px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;table-layout:fixed}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);word-wrap:break-word}
+th{background:var(--card2);color:var(--gold);font-weight:600;font-size:12px;letter-spacing:1px}
+td{color:var(--text)}
+tr:hover td{background:rgba(212,175,55,0.03)}
+
+/* Roadmap */
+.roadmap{position:relative;padding-left:32px;margin-top:20px}
+.roadmap::before{content:'';position:absolute;left:10px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--gold),var(--border))}
+.rm-item{position:relative;margin-bottom:24px}
+.rm-item::before{content:'';position:absolute;left:-28px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--gold)}
+.rm-item h4{font-size:15px;color:var(--gold2);margin-bottom:4px}
+.rm-item p{font-size:13px;color:var(--muted)}
+.rm-item .priority{display:inline-block;font-size:11px;padding:1px 8px;border-radius:3px;margin-left:8px;font-weight:500}
+.p-high{background:rgba(248,113,113,0.15);color:var(--red)}
+.p-mid{background:rgba(251,146,60,0.15);color:var(--orange)}
+.p-low{background:rgba(74,222,128,0.15);color:var(--green)}
+
+footer{padding:32px 0;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:768px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .repo-card .grid{grid-template-columns:1fr}
+  .chart-row{grid-template-columns:1fr}
+  .hero h1{font-size:28px}
+  table{min-width:560px}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .repo-card .rank{font-size:36px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Hero ===== -->
+<div class="hero">
+<div class="container">
+  <span class="tag">OPEN SOURCE AUDIT</span>
+  <h1>Card Studio 开源仓库对标分析报告</h1>
+  <p>针对 3D 立体旋转闪光卡生成器的功能定位、技术栈与业务场景，系统性检索 GitHub 高星活跃开源项目，挖掘可复用资源与关键技术借鉴点，最大限度降低重复造轮子成本。</p>
+  <div class="meta">
+    <div><strong>5</strong>对标仓库</div>
+    <div><strong>~17.8k</strong>累计 Star</div>
+    <div><strong>3</strong>核心技术域覆盖</div>
+    <div><strong>2026-09-13</strong>报告日期</div>
+  </div>
+</div>
+</div>
+
+<div class="container">
+
+<!-- ===== 1. 调研概述 ===== -->
+<section>
+  <h2>一、调研概述</h2>
+  <p class="sub">检索范围：GitHub 公开仓库 | 筛选条件：Star 100+、近 12 个月活跃、文档完善 | 对标项目：Card Studio（闪卡工坊）</p>
+  <p>Card Studio 的核心技术链路由三大模块构成：<strong style="color:var(--gold2)">浏览器端 AI 抠图</strong>（ONNX Runtime Web + MODNet/U²-Net/ISNet）、<strong style="color:var(--gold2)">Canvas2D 卡面合成</strong>（渐变/星空背景 + 烫金描边文字 + 主体缩放）、<strong style="color:var(--gold2)">Three.js 多视角 3D 旋转查看器</strong>（环形角度插值 + 双面渲染 + 惯性拖拽）。本次调研围绕这三个技术域，在 GitHub 上检索功能定位、技术栈、业务场景高度相似的开源项目，最终筛选出匹配度 Top 5 仓库进行深度分析。</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num">2</div><div class="label">抠图/背景移除域</div></div>
+    <div class="stat-card"><div class="num">2</div><div class="label">全息闪卡视觉域</div></div>
+    <div class="stat-card"><div class="num">1</div><div class="label">3D 查看器架构域</div></div>
+    <div class="stat-card"><div class="num">0</div><div class="label">全链路直接竞品</div></div>
+  </div>
+  <p style="margin-top:20px;font-size:13px;color:var(--muted)">关键发现：目前 GitHub 上<strong style="color:var(--gold2)">不存在将"浏览器抠图 + 卡面合成 + 多视角 3D 旋转"三者完整整合的直接竞品</strong>。各开源项目分别在单一技术域做到了较高水平，Card Studio 的整合式定位本身具有差异化空间。</p>
+</section>
+
+<!-- ===== 2. Top 5 仓库详情 ===== -->
+<section>
+  <h2>二、匹配度 Top 5 仓库详情</h2>
+  <p class="sub">按功能匹配度、技术栈重合度、可复用价值综合排序</p>
+
+  <!-- #1 -->
+  <div class="repo-card">
+    <div class="rank">01</div>
+    <h3>imgly/background-removal-js <span class="badge badge-high">直接技术对标</span></h3>
+    <div class="url"><a href="https://github.com/imgly/background-removal-js" target="_blank">github.com/imgly/background-removal-js</a></div>
+    <div class="desc">浏览器端 AI 背景移除的行业标杆方案。基于 ONNX Runtime Web，内置 ISNet 系列模型，支持 WebAssembly 与 WebGPU 双后端，提供 npm 包与零配置 API，是 Card Studio 抠图模块最直接的对标参考。</div>
+    <div class="grid">
+      <div class="block">
+        <h4>核心优势</h4>
+        <ul>
+          <li>~7,153 Star，社区成熟，周下载量稳定</li>
+          <li>双包架构：@imgly/background-removal（浏览器）+ Node 版</li>
+          <li>内置模型 CDN 分发 + 本地 IndexedDB 缓存</li>
+          <li>支持 WebGPU 加速，移动端自动回退 WASM</li>
+          <li>输出 RGBA PNG，支持自定义输出分辨率</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h4>可借鉴技术点</h4>
+        <ul>
+          <li>模型按路径独立缓存策略（Card Studio 已部分实现）</li>
+          <li>Config 系统：可配置模型源、输出质量、进度回调</li>
+          <li>WebGPU/WASM 自动探测与优雅降级</li>
+          <li>渐进式模型加载：先低精度预览，再高精度替换</li>
+          <li>颜色去污染（color decontamination）后处理</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags"><span>onnxruntime-web</span><span>ISNet</span><span>WebGPU</span><span>WASM</span><span>TypeScript</span><span>MIT</span></div>
+  </div>
+
+  <!-- #2 -->
+  <div class="repo-card">
+    <div class="rank">02</div>
+    <h3>simeydotme/pokemon-cards-css <span class="badge badge-high">业务场景对标</span></h3>
+    <div class="url"><a href="https://github.com/simeydotme/pokemon-cards-css" target="_blank">github.com/simeydotme/pokemon-cards-css</a></div>
+    <div class="desc">宝可梦集换式卡牌全息效果的 CSS 终极实现。纯 CSS + Svelte 模拟 20+ 种稀有度全息工艺（普通闪、反向闪、宇宙闪、V卡、VMAX、彩虹闪、黄金秘稀），含 3D 倾斜交互与弹簧物理动画，是闪卡视觉效果领域最权威的开源参考。</div>
+    <div class="grid">
+      <div class="block">
+        <h4>核心优势</h4>
+        <ul>
+          <li>~6,290 Star，全息卡牌效果事实标准</li>
+          <li>20+ 卡牌类型 × 独立稀有度效果样式表</li>
+          <li>三层 CSS 架构：基础层 → 变量配置层 → 类型实现层</li>
+          <li>BEM 命名 + data-rarity 属性驱动的效果切换</li>
+          <li>鼠标/触摸/设备陀螺仪三端交互统一</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h4>可借鉴技术点</h4>
+        <ul>
+          <li>repeating-linear-gradient + color-dodge 混合模拟全息光栅</li>
+          <li>--pointer-x/y CSS 变量驱动的实时高光跟随</li>
+          <li>弹簧物理动画循环（spring physics）替代线性过渡</li>
+          <li>SVG feTurbulence 生成程序化噪点纹理（无需图片素材）</li>
+          <li>稀有度分级效果体系可直接映射到 Card Studio 的卡面参数</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags"><span>CSS3</span><span>Svelte</span><span>Vite</span><span>SVG Filters</span><span>Blend Modes</span><span>MIT</span></div>
+  </div>
+
+  <!-- #3 -->
+  <div class="repo-card">
+    <div class="rank">03</div>
+    <h3>EverettFish/holo-card-studio <span class="badge badge-mid">产品概念对标</span></h3>
+    <div class="url"><a href="https://github.com/EverettFish/holo-card-studio" target="_blank">github.com/EverettFish/holo-card-studio</a></div>
+    <div class="desc">2026 年 9 月冲上 GitHub Trending 前十的现象级项目。AI 一句话生成可拖拽旋转、可翻面、随视角流光溢彩的 3D 全息闪卡，附赠可编辑 Blender 工程。开源 2 天破 1,100 Star，验证了"AI 生成 + 3D 全息闪卡"赛道的市场热度。</div>
+    <div class="grid">
+      <div class="block">
+        <h4>核心优势</h4>
+        <ul>
+          <li>~1,135 Star，增长极快，赛道验证标杆</li>
+          <li>完整的"描述 → 生成 → 3D 交互"产品闭环</li>
+          <li>Blender 程序化材质节点实现真实全息折射</li>
+          <li>输出可编辑 .blend 工程，二次创作空间大</li>
+          <li> Codex Skill 形态，AI 原生工作流</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h4>可借鉴技术点</h4>
+        <ul>
+          <li>产品定位验证：全息闪卡 + 3D 旋转有真实用户需求</li>
+          <li>Blender 材质节点的全息物理模拟思路</li>
+          <li>卡背设计与翻面交互的用户体验模式</li>
+          <li>AI 生成参数 → 卡面属性的映射 schema 设计</li>
+          <li>注意：其 Python/Blender 技术栈与 Card Studio 纯 Web 路线不同，不可直接复用代码</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags"><span>Python</span><span>Blender</span><span>AI Generation</span><span>3D Holographic</span><span>Codex Skill</span></div>
+  </div>
+
+  <!-- #4 -->
+  <div class="repo-card">
+    <div class="rank">04</div>
+    <h3>kongyo2/cards-css <span class="badge badge-mid">可复用组件对标</span></h3>
+    <div class="url"><a href="https://github.com/kongyo2/cards-css" target="_blank">github.com/kongyo2/cards-css</a></div>
+    <div class="desc">框架无关的全息集换式卡牌效果库。TypeScript + CSS 实现，提供 4 种程序化箔面类型（holo / cosmos / oil-slick / galaxy），内置弹簧物理交互循环，以 npm 库形式发布，可直接作为依赖引入项目。</div>
+    <div class="grid">
+      <div class="block">
+        <h4>核心优势</h4>
+        <ul>
+          <li>轻量级库设计，~3KB gzip，零框架依赖</li>
+          <li>4 种程序化箔面：SVG 滤镜生成，无需重型图片素材</li>
+          <li>弹簧物理动画循环，交互手感接近真实卡牌</li>
+          <li>指针移动 + 设备方向双输入源统一</li>
+          <li>可选 React 包装组件</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h4>可借鉴技术点</h4>
+        <ul>
+          <li>可直接 npm install 作为箔面效果层使用</li>
+          <li>程序化箔面生成算法（SVG feTurbulence + 位移映射）</li>
+          <li>库的 API 设计：配置对象 → 效果实例 → 销毁生命周期</li>
+          <li>与 Canvas2D 卡面合成层叠加的方案可行性</li>
+          <li>箔面参数（光泽强度、动画速度、倾斜角度）可映射到 UI 控件</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags"><span>TypeScript</span><span>CSS</span><span>SVG Filters</span><span>Spring Physics</span><span>Framework-agnostic</span></div>
+  </div>
+
+  <!-- #5 -->
+  <div class="repo-card">
+    <div class="rank">05</div>
+    <h3>mistic100/Photo-Sphere-Viewer <span class="badge badge-mid">3D 架构对标</span></h3>
+    <div class="url"><a href="https://github.com/mistic100/Photo-Sphere-Viewer" target="_blank">github.com/mistic100/Photo-Sphere-Viewer</a></div>
+    <div class="desc">基于 Three.js 的 360° 全景查看器，~2,200 Star，2025 年完成 TypeScript 重写。虽然定位为全景图查看，但其 Three.js 渲染架构、插件系统、交互处理（触摸/鼠标/陀螺仪）、分辨率适配等工程实践对 Card Studio 的 3D 查看器模块有直接参考价值。</div>
+    <div class="grid">
+      <div class="block">
+        <h4>核心优势</h4>
+        <ul>
+          <li>~2,200 Star，周下载 8k+，非常活跃</li>
+          <li>完善的 Three.js 封装：场景/相机/渲染器生命周期管理</li>
+          <li>插件架构：标记点、导航、自动旋转、滤镜等可插拔</li>
+          <li>统一的交互抽象层：鼠标/触摸/陀螺仪/键盘</li>
+          <li>TypeScript 类型完备，文档详尽</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h4>可借鉴技术点</h4>
+        <ul>
+          <li>Three.js 查看器的标准初始化与资源销毁模式</li>
+          <li>插件系统设计：Viewer 核心 + 可插拔功能模块</li>
+          <li>惯性滚动算法（速度衰减曲线）</li>
+          <li>分辨率/DPR 自适应渲染策略</li>
+          <li>注意：其全景球面映射与 Card Studio 的平面多帧插值不同，仅参考架构而非算法</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags"><span>Three.js</span><span>TypeScript</span><span>WebGL</span><span>Plugin System</span><span>MIT</span></div>
+  </div>
+</section>
+
+<!-- ===== 3. 多维度对比可视化 ===== -->
+<section>
+  <h2>三、多维度对比分析</h2>
+  <p class="sub">从功能匹配度、技术栈重合度、社区活跃度、文档完善度、可复用性五个维度量化评估</p>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h4>五维能力雷达图</h4>
+      <div id="radarChart" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h4>Star 数量与活跃度对比</h4>
+      <div id="barChart" class="chart"></div>
+    </div>
+  </div>
+
+  <table style="margin-top:28px">
+    <colgroup><col style="width:22%"><col style="width:13%"><col style="width:13%"><col style="width:13%"><col style="width:13%"><col style="width:26%"></colgroup>
+    <thead><tr><th>仓库</th><th>Star</th><th>技术栈重合</th><th>功能匹配</th><th>可复用性</th><th>核心差异</th></tr></thead>
+    <tbody>
+      <tr><td><strong>imgly/background-removal-js</strong></td><td>~7,153</td><td style="color:var(--green)">高</td><td style="color:var(--green)">高（抠图域）</td><td style="color:var(--green)">高</td><td>成熟 npm 包，可直接替换自研抠图层</td></tr>
+      <tr><td><strong>simeydotme/pokemon-cards-css</strong></td><td>~6,290</td><td style="color:var(--orange)">中</td><td style="color:var(--green)">高（视觉域）</td><td style="color:var(--orange)">中</td><td>纯 CSS 方案，需移植到 Canvas 或叠加层</td></tr>
+      <tr><td><strong>EverettFish/holo-card-studio</strong></td><td>~1,135</td><td style="color:var(--red)">低</td><td style="color:var(--green)">高（概念域）</td><td style="color:var(--red)">低</td><td>Python/Blender 技术栈，仅参考产品思路</td></tr>
+      <tr><td><strong>kongyo2/cards-css</strong></td><td>~数百</td><td style="color:var(--orange)">中</td><td style="color:var(--orange)">中</td><td style="color:var(--green)">高</td><td>轻量库，可直接 npm 引入做箔面效果</td></tr>
+      <tr><td><strong>mistic100/Photo-Sphere-Viewer</strong></td><td>~2,200</td><td style="color:var(--green)">高</td><td style="color:var(--orange)">中（架构域）</td><td style="color:var(--orange)">中</td><td>全景球面映射，仅参考 Three.js 架构模式</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===== 4. 可复用资源汇总 ===== -->
+<section>
+  <h2>四、可复用资源汇总</h2>
+  <p class="sub">按"直接集成复用"与"思路借鉴参考"两级分类</p>
+
+  <h3 style="font-size:17px;color:var(--green);margin-bottom:12px">A. 可直接集成复用</h3>
+  <table>
+    <colgroup><col style="width:25%"><col style="width:20%"><col style="width:30%"><col style="width:25%"></colgroup>
+    <thead><tr><th>资源</th><th>来源仓库</th><th>复用方式</th><th>预期收益</th></tr></thead>
+    <tbody>
+      <tr><td><strong>@imgly/background-removal</strong></td><td>imgly/background-removal-js</td><td>npm install 后替换 cutout.js 的模型推理层，保留现有 UI 与模式切换</td><td>获得 WebGPU 加速、更优模型质量、社区维护的模型更新</td></tr>
+      <tr><td><strong>cards-css 箔面效果库</strong></td><td>kongyo2/cards-css</td><td>npm 引入后作为 3D 查看器卡片 mesh 的 CSS/Canvas 叠加箔面层</td><td>零开发获得 4 种程序化全息箔面效果，提升卡面质感</td></tr>
+      <tr><td><strong>CSS 全息效果算法</strong></td><td>simeydotme/pokemon-cards-css</td><td>提取 repeating-gradient + color-dodge 混合公式，移植到 compose.js 的 Canvas 合成层</td><td>20+ 稀有度效果模式可映射为卡面背景样式选项</td></tr>
+      <tr><td><strong>SVG feTurbulence 噪点</strong></td><td>pokemon-cards-css / cards-css</td><td>生成程序化颗粒纹理，替代星空背景的静态图片素材</td><td>减少素材体积，纹理参数可调，支持动态变化</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:17px;color:var(--orange);margin:28px 0 12px">B. 思路借鉴参考（不可直接复用代码）</h3>
+  <table>
+    <colgroup><col style="width:25%"><col style="width:20%"><col style="width:30%"><col style="width:25%"></colgroup>
+    <thead><tr><th>技术思路</th><th>来源仓库</th><th>借鉴方向</th><th>应用模块</th></tr></thead>
+    <tbody>
+      <tr><td><strong>模型渐进式加载</strong></td><td>imgly/background-removal-js</td><td>先加载 INT8 快速模型出预览，后台加载 FP32 高精度替换</td><td>cutout.js 抠图模块</td></tr>
+      <tr><td><strong>颜色去污染后处理</strong></td><td>imgly/background-removal-js</td><td>抠图边缘的背景色溢出修正算法</td><td>cutout.js 抠图模块</td></tr>
+      <tr><td><strong>弹簧物理交互</strong></td><td>pokemon-cards-css / cards-css</td><td>用 spring-damper 模型替代当前线性过渡，提升拖拽手感</td><td>viewer.js 3D 查看器</td></tr>
+      <tr><td><strong>插件化查看器架构</strong></td><td>Photo-Sphere-Viewer</td><td>Viewer 核心 + 可插拔功能（自动旋转/标记/滤镜）的设计模式</td><td>viewer.js 3D 查看器</td></tr>
+      <tr><td><strong>稀有度分级效果体系</strong></td><td>pokemon-cards-css</td><td>将卡面参数（背景/光泽/描边）按稀有度预设打包</td><td>compose.js 卡面合成</td></tr>
+      <tr><td><strong>AI 生成 → 卡面映射</strong></td><td>holo-card-studio</td><td>未来接入 AI 生图时，描述词到卡面属性的 schema 设计参考</td><td>app.js 主控（未来扩展）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===== 5. 避免重复开发的落地建议 ===== -->
+<section>
+  <h2>五、避免重复开发的落地建议</h2>
+  <p class="sub">按优先级排序的具体行动项，明确"做什么 / 不做什么 / 借用什么"</p>
+
+  <div class="roadmap">
+    <div class="rm-item">
+      <h4>P0：评估并引入 @imgly/background-removal 替代自研抠图层 <span class="priority p-high">高优先</span></h4>
+      <p>当前 cutout.js 自研了 MODNet/U²-Net/ISNet 三套模型的 ONNX 推理逻辑，但 ISNet 在 WASM 下已确认无法正常工作（最近 commit 已移除）。imgly 的方案经过大规模生产验证，支持 WebGPU 加速和模型自动更新。建议：在分支上做 PoC，用 @imgly/background-removal 替换推理层，保留现有 UI/模式切换/缓存逻辑。若性能与质量达标，则废弃自研推理代码，仅保留色键/直通模式。<strong>预计节省：200+ 行模型推理维护代码，持续获得社区模型更新。</strong></p>
+    </div>
+    <div class="rm-item">
+      <h4>P1：引入 cards-css 箔面效果库作为可选卡面特效层 <span class="priority p-high">高优先</span></h4>
+      <p>当前 Card Studio 的"光泽扫光"效果较为基础。kongyo2/cards-css 提供 4 种程序化全息箔面（holo/cosmos/oil-slick/galaxy），~3KB gzip，可直接 npm 引入。建议：将其作为 3D 查看器中卡片的叠加特效层，与现有 Canvas 合成的卡面图叠加，用户可在"卡面参数"中选择箔面类型。<strong>零算法开发即可获得专业级全息效果。</strong></p>
+    </div>
+    <div class="rm-item">
+      <h4>P2：移植 pokemon-cards-css 的全息渐变算法到 Canvas 合成层 <span class="priority p-mid">中优先</span></h4>
+      <p>pokemon-cards-css 的 20+ 稀有度效果（repeating-linear-gradient + color-dodge + SVG 噪点）是行业标杆。建议：提取核心渐变公式与混合模式，在 compose.js 中实现 3-5 种最具代表性的全息背景样式（如宇宙闪、彩虹闪、反向闪），作为"背景样式"下拉选项扩展。<strong>注意：仅移植算法公式，不引入 CSS 依赖，保持纯 Canvas 渲染架构。</strong></p>
+    </div>
+    <div class="rm-item">
+      <h4>P3：用弹簧物理模型优化 3D 查看器拖拽手感 <span class="priority p-mid">中优先</span></h4>
+      <p>当前 viewer.js 使用线性过渡处理旋转动画。pokemon-cards-css 和 cards-css 均采用 spring-damper 物理模型，交互手感更接近真实卡牌。建议：在 viewer.js 的旋转更新循环中引入弹簧物理（目标角度 → 当前角度的阻尼插值），替换现有线性 lerp。参考 Photo-Sphere-Viewer 的惯性衰减曲线。<strong>改动量小（~30 行），用户体验提升显著。</strong></p>
+    </div>
+    <div class="rm-item">
+      <h4>P4：参考 Photo-Sphere-Viewer 重构查看器为插件化架构 <span class="priority p-low">低优先</span></h4>
+      <p>当前 viewer.js 将渲染、交互、自动旋转、跳转等功能耦合在一个文件中。建议中长期参考 Photo-Sphere-Viewer 的插件架构，将查看器拆分为核心渲染层 + 可插拔功能模块（自动旋转插件、键盘控制插件、景深效果插件等）。<strong>为后续 Tauri 移动端适配和功能扩展奠定架构基础。</strong></p>
+    </div>
+    <div class="rm-item">
+      <h4>P5：持续关注 holo-card-studio 的产品演进，不做技术对标 <span class="priority p-low">低优先</span></h4>
+      <p>holo-card-studio 验证了赛道热度，但其 Python/Blender 技术栈与 Card Studio 的纯 Web 路线完全不同，不存在代码复用可能。建议：仅关注其产品功能迭代（如卡背设计、AI 描述词模板、分享机制），作为产品规划参考；不投入精力研究其 Blender 材质实现。<strong>明确边界：Card Studio 走"轻量纯 Web + 本地运行"差异化路线，不与 Blender 重资产方案正面竞争。</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6. 结论 ===== -->
+<section style="border-bottom:none">
+  <h2>六、核心结论</h2>
+  <div style="background:var(--card);border:1px solid var(--gold);border-radius:12px;padding:28px;margin-top:8px">
+    <ol style="padding-left:20px;line-height:2">
+      <li><strong style="color:var(--gold2)">无直接全链路竞品</strong>：GitHub 上不存在将"浏览器抠图 + 卡面合成 + 多视角 3D 旋转"整合的同类项目，Card Studio 的整合定位具有差异化优势。</li>
+      <li><strong style="color:var(--gold2)">抠图层应优先复用</strong>：imgly/background-removal-js 是成熟工业级方案，自研维护成本高且已遇到 ISNet WASM 兼容性问题，建议尽快 PoC 替换。</li>
+      <li><strong style="color:var(--gold2)">视觉效果可低成本增强</strong>：cards-css 库 + pokemon-cards-css 算法移植，可在不大改架构的前提下显著提升全息卡面质感。</li>
+      <li><strong style="color:var(--gold2)">3D 查看器保持自研</strong>：多视角平面环形插值是 Card Studio 的核心差异化能力，开源项目中无直接替代，应持续投入优化（物理手感、插件化架构）。</li>
+      <li><strong style="color:var(--gold2)">holo-card-studio 仅做产品参考</strong>：其 Blender/Python 路线与纯 Web 路线不冲突，关注产品功能而非技术实现。</li>
+    </ol>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div class="container">
+    Card Studio 开源仓库对标分析报告 · 生成于 2026-09-13 · 数据来源：GitHub、DeepWiki、npm、LibHunt
+  </div>
+</footer>
+
+<script>
+// Wrap tables in scrollable container for mobile
+document.querySelectorAll('table').forEach(function(t){
+  var wrap=document.createElement('div');
+  wrap.className='table-scroll';
+  t.parentNode.insertBefore(wrap,t);
+  wrap.appendChild(t);
+});
+
+// Radar Chart
+var radar = echarts.init(document.getElementById('radarChart'));
+radar.setOption({
+  tooltip:{},
+  legend:{data:['imgly/bg-removal','pokemon-cards-css','holo-card-studio','cards-css','Photo-Sphere-Viewer'],
+    textStyle:{color:'#9a98a8',fontSize:10},bottom:0,type:'scroll'},
+  radar:{
+    indicator:[
+      {name:'功能匹配度',max:10},
+      {name:'技术栈重合',max:10},
+      {name:'社区活跃度',max:10},
+      {name:'文档完善度',max:10},
+      {name:'可复用性',max:10}
+    ],
+    axisName:{color:'#9a98a8',fontSize:11},
+    splitLine:{lineStyle:{color:'#2a2a3a'}},
+    splitArea:{areaStyle:{color:['rgba(212,175,55,0.02)','rgba(212,175,55,0.05)']}},
+    axisLine:{lineStyle:{color:'#2a2a3a'}}
+  },
+  series:[{type:'radar',data:[
+    {value:[9,9,9,9,9],name:'imgly/bg-removal',itemStyle:{color:'#d4af37'},areaStyle:{opacity:0.15}},
+    {value:[8,5,8,8,6],name:'pokemon-cards-css',itemStyle:{color:'#6c8cff'},areaStyle:{opacity:0.1}},
+    {value:[7,2,7,5,3],name:'holo-card-studio',itemStyle:{color:'#f87171'},areaStyle:{opacity:0.1}},
+    {value:[6,5,5,6,8],name:'cards-css',itemStyle:{color:'#4ade80'},areaStyle:{opacity:0.1}},
+    {value:[5,8,8,9,5],name:'Photo-Sphere-Viewer',itemStyle:{color:'#fb923c'},areaStyle:{opacity:0.1}}
+  ]}]
+});
+
+// Bar Chart
+var bar = echarts.init(document.getElementById('barChart'));
+bar.setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:60,right:30,top:20,bottom:40},
+  xAxis:{type:'category',data:['imgly/bg-removal','pokemon-cards-css','Photo-Sphere','holo-card-studio','cards-css'],
+    axisLabel:{color:'#9a98a8',fontSize:10,interval:0,rotate:15}},
+  yAxis:{type:'value',name:'Star 数',nameTextStyle:{color:'#9a98a8'},axisLabel:{color:'#9a98a8'},splitLine:{lineStyle:{color:'#2a2a3a'}}},
+  series:[{
+    type:'bar',data:[
+      {value:7153,itemStyle:{color:'#d4af37'}},
+      {value:6290,itemStyle:{color:'#6c8cff'}},
+      {value:2200,itemStyle:{color:'#fb923c'}},
+      {value:1135,itemStyle:{color:'#f87171'}},
+      {value:300,itemStyle:{color:'#4ade80'}}
+    ],
+    barWidth:'50%',
+    label:{show:true,position:'top',color:'#e8e6e0',fontSize:11,formatter:function(p){return p.value>=1000?(p.value/1000).toFixed(1)+'k':p.value}}
+  }]
+});
+
+window.addEventListener('resize',function(){radar.resize();bar.resize();});
+</script>
+</body>
+</html>

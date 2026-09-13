@@ -16,13 +16,20 @@
 
   var dragging = false, lastX = 0, lastY = 0, velX = 0, lastMoveT = 0;
   var autoRotate = false, speed = 0.6;   // 弧度/秒
-  var depth = 0.25, gloss = 0.55;
+  var depth = 0.25, gloss = 0.55, foil = 0;
   var onAngle = null;
   var running = false;
   var zoom = 1.0;           // 缩放倍率（camera z = 7.2 / zoom）
   var panX = 0, panY = 0;   // 平移偏移
   var mode = 'rotate';      // 拖拽模式：rotate=旋转卡片，pan=平移视角（放大后）
   var DEFAULT_CAM_Z = 7.2;
+
+  /* 弹簧物理参数（spring-damper） */
+  var targetY = 0;          // 目标旋转角（弧度）
+  var angVel = 0;           // 角速度
+  var SPRING_K = 140;       // 刚度：越大回弹越快
+  var SPRING_D = 16;        // 阻尼：越大停止越快（临界阻尼约 2*sqrt(K)=23.7）
+  var lastFrameT = 0;
 
   function init(el) {
     container = el;
@@ -65,7 +72,7 @@
     var canvasEl = renderer.domElement;
     canvasEl.addEventListener('pointerdown', function (e) {
       dragging = true; lastX = e.clientX; lastY = e.clientY; lastMoveT = performance.now();
-      velX = 0;
+      velX = 0; angVel = 0;
       // 放大超过 1.35x 或按住 Alt → 平移模式
       mode = (zoom > 1.35 || e.altKey) ? 'pan' : 'rotate';
       canvasEl.style.cursor = 'grabbing';
@@ -84,11 +91,19 @@
         group.position.y = panY;
       } else {
         velX = dx / dt;
-        group.rotation.y += dx * 0.006;
+        var delta = dx * 0.006;
+        group.rotation.y += delta;
+        targetY += delta;   // 拖拽时目标跟随手
       }
       lastX = e.clientX; lastY = e.clientY; lastMoveT = now;
     });
-    canvasEl.addEventListener('pointerup', function () { dragging = false; canvasEl.style.cursor = zoom > 1.35 ? 'move' : 'grab'; });
+    canvasEl.addEventListener('pointerup', function () {
+      if (dragging && mode === 'rotate') {
+        // 松手：用拖拽末速度作为弹簧初始角速度（抛射感）
+        angVel = velX * 0.006 * 60;  // 转换为弧度/秒量级
+      }
+      dragging = false; canvasEl.style.cursor = zoom > 1.35 ? 'move' : 'grab';
+    });
     canvasEl.addEventListener('pointerleave', function () { dragging = false; });
 
     // 滚轮缩放
@@ -107,8 +122,8 @@
     window.addEventListener('keydown', function (e) {
       var tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowLeft') { group.rotation.y -= 6 * Math.PI / 180; e.preventDefault(); }
-      else if (e.key === 'ArrowRight') { group.rotation.y += 6 * Math.PI / 180; e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { targetY -= 6 * Math.PI / 180; e.preventDefault(); }
+      else if (e.key === 'ArrowRight') { targetY += 6 * Math.PI / 180; e.preventDefault(); }
     });
 
     // 视口尺寸
@@ -119,19 +134,28 @@
     loop();
   }
 
-  /** 直接跳转到指定角度（0-359） */
+  /** 跳转到指定角度（0-359）：走弹簧过渡，取最短路径 */
   function setAngle(deg) {
-    group.rotation.y = ((deg % 360) + 360) % 360 * Math.PI / 180;
-    paintMix();
+    var targetRad = ((deg % 360) + 360) % 360 * Math.PI / 180;
+    var current = group.rotation.y;
+    var twoPi = Math.PI * 2;
+    // 找到离 current 最近的等价 target 角度（最短路径）
+    var diff = targetRad - (current % twoPi);
+    while (diff > Math.PI) diff -= twoPi;
+    while (diff < -Math.PI) diff += twoPi;
+    targetY = current + diff;
+    angVel = 0;  // 跳转时清零速度，避免叠加
   }
 
   /** 微调角度（键盘用，单位：度） */
   function nudge(deltaDeg) {
-    group.rotation.y += deltaDeg * Math.PI / 180;
+    targetY += deltaDeg * Math.PI / 180;
   }
 
   /** 复位视角：角度回 0°、缩放 1x、平移居中 */
   function resetView() {
+    targetY = 0;
+    angVel = 0;
     group.rotation.y = 0;
     zoom = 1.0;
     camera.position.z = DEFAULT_CAM_Z;
@@ -176,6 +200,8 @@
     faceMesh.visible = true;
     overlayMesh.visible = true;
     group.rotation.y = 0;
+    targetY = 0;
+    angVel = 0;
     paintMix();
   }
 
@@ -233,6 +259,37 @@
       oc1.fillStyle = gg;
       oc1.fillRect(0, 0, texW, texH);
     }
+
+    // 全息箔面：彩虹光谱高光带，随角度旋转产生色移（模拟真实全息卡）
+    if (foil > 0.01) {
+      oc1.globalAlpha = 1;
+      oc1.globalCompositeOperation = 'screen';
+      var fSweep = ((deg % 360) / 360) * texW * 2.5 - texW * 0.75;
+      var fW = texW * 0.45;
+      // 彩虹渐变带
+      var fg = oc1.createLinearGradient(fSweep - fW, 0, fSweep + fW, texH);
+      var rainbow = ['rgba(255,0,64,0)', 'rgba(255,0,64,VAL)', 'rgba(255,140,0,VAL)', 'rgba(255,215,0,VAL)',
+                     'rgba(0,230,118,VAL)', 'rgba(0,176,255,VAL)', 'rgba(61,90,254,VAL)', 'rgba(213,0,249,VAL)', 'rgba(213,0,249,0)'];
+      var fa = (0.55 * foil).toFixed(3);
+      rainbow.forEach(function (c, i) {
+        fg.addColorStop(i / (rainbow.length - 1), c.replace('VAL', fa));
+      });
+      oc1.fillStyle = fg;
+      oc1.fillRect(0, 0, texW, texH);
+      // 第二层细光栅条纹（随角度微移）
+      oc1.globalAlpha = 0.3 * foil;
+      var stripeOffset = (deg % 360) / 360 * 20;
+      for (var sx = -texH + stripeOffset; sx < texW + texH; sx += 14) {
+        oc1.beginPath();
+        oc1.moveTo(sx, 0); oc1.lineTo(sx + texH, texH);
+        oc1.lineTo(sx + texH + 3, texH); oc1.lineTo(sx + 3, 0);
+        oc1.closePath();
+        oc1.fillStyle = 'rgba(255,255,255,0.15)';
+        oc1.fill();
+      }
+      oc1.globalCompositeOperation = 'source-over';
+      oc1.globalAlpha = 1;
+    }
     overlayTex.needsUpdate = true;
 
     if (onAngle) onAngle(Math.round(deg), k1, k2, t);
@@ -247,14 +304,27 @@
   function loop() {
     if (!running) return;
     requestAnimationFrame(loop);
+    var now = performance.now();
+    var dt = lastFrameT ? Math.min(0.05, (now - lastFrameT) / 1000) : 1 / 60;
+    lastFrameT = now;
+
     if (autoRotate && !dragging) {
-      group.rotation.y += speed * (1 / 60);
-    } else if (!dragging && Math.abs(velX) > 0.05) {
-      // 惯性
-      group.rotation.y += velX * 0.006;
-      velX *= 0.94;
-      if (Math.abs(velX) < 0.05) velX = 0;
+      targetY += speed * dt;
     }
+
+    if (!dragging) {
+      // 弹簧-damper：current 趋向 targetY
+      var diff = targetY - group.rotation.y;
+      var accel = -SPRING_K * diff - SPRING_D * angVel;
+      angVel += accel * dt;
+      group.rotation.y += angVel * dt;
+      // 低速钳制：避免浮点抖动
+      if (Math.abs(angVel) < 0.0005 && Math.abs(diff) < 0.0005) {
+        angVel = 0;
+        group.rotation.y = targetY;
+      }
+    }
+
     paintMix();
     renderer.render(scene, camera);
   }
@@ -264,17 +334,18 @@
     if (overlayMesh) overlayMesh.position.z = v * 0.45;
   }
   function setGloss(v) { gloss = v; }
+  function setFoil(v) { foil = v; }
   function setSpeed(v) { speed = v * 3; }  // 0~1 → 0~3 弧度/秒
   function toggleAuto() {
     autoRotate = !autoRotate;
-    if (autoRotate) velX = 0;
+    if (autoRotate) angVel = 0;
     return autoRotate;
   }
 
   global.Viewer = {
     init: init, resize: resize,
     setFrames: setFrames, clearFrames: clearFrames,
-    setDepth: setDepth, setGloss: setGloss, setSpeed: setSpeed,
+    setDepth: setDepth, setGloss: setGloss, setFoil: setFoil, setSpeed: setSpeed,
     toggleAuto: toggleAuto, setAngle: setAngle, nudge: nudge,
     resetView: resetView, captureCurrent: captureCurrent,
     set onAngle(fn) { onAngle = fn; }

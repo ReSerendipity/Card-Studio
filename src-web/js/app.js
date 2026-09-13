@@ -39,7 +39,7 @@
   var PKEY = 'cardstudio-params';
   var PARAM_IDS = ['card-name', 'card-no', 'card-rarity', 'bg-style', 'bg-color',
                    'card-font', 'card-name-color', 'card-border', 'card-corners',
-                   'sl-subject', 'bg-seed', 'cutout-mode', 'model-quality'];
+                   'sl-subject', 'bg-seed', 'cutout-mode', 'model-quality', 'sl-foil'];
   function saveParams() {
     var o = {};
     PARAM_IDS.forEach(function (id) {
@@ -225,7 +225,13 @@
           return Promise.resolve();
         }
         setStatus('正在抠图 ' + (idx + 1) + '/' + total + '（' + f.name + '）…', '');
-        return Cutout.cutout(f.image, mode, modelPath).then(function (subject) {
+        var cutoutPromise;
+        if (modelPath === 'imgly') {
+          cutoutPromise = Cutout.cutoutWithImgly(f.image);
+        } else {
+          cutoutPromise = Cutout.cutout(f.image, mode, modelPath);
+        }
+        return cutoutPromise.then(function (subject) {
           setStatus('正在合成卡面 ' + (idx + 1) + '/' + total + '（角度 ' + angles[idx] + '°）…', '');
           setProgress(Math.round((idx + 1) / total * 100), true);
           var built = Compose.build({ subject: subject, name: card.name, no: card.no, rarity: card.rarity, bgStyle: card.bgStyle, seed: card.seed + idx, bgColor: card.bgColor, textFont: card.textFont, nameColor: card.nameColor, borderStyle: card.borderStyle, showCorners: card.showCorners, bgImage: card.bgImage, subjectScale: card.subjectScale });
@@ -263,6 +269,7 @@
     fn(parseInt(el.value, 10) / 100);
   }
   bindSlider('sl-gloss', function (v) { Viewer.setGloss(v); });
+  bindSlider('sl-foil', function (v) { Viewer.setFoil(v); });
   bindSlider('sl-depth', function (v) { Viewer.setDepth(v); });
   bindSlider('sl-speed', function (v) { Viewer.setSpeed(v); });
 
@@ -271,6 +278,17 @@
     $('subject-val').textContent = $('sl-subject').value + '%';
   });
   $('subject-val').textContent = $('sl-subject').value + '%';
+
+  // 选择全息背景时自动建议箔面强度（若当前为0）
+  $('bg-style').addEventListener('change', function () {
+    var v = this.value;
+    if (v.indexOf('holo-') === 0 && parseInt($('sl-foil').value, 10) === 0) {
+      $('sl-foil').value = 65;
+      Viewer.setFoil(0.65);
+      saveParams();
+      setStatus('已选择全息背景，箔面强度自动调至 65%，生成后旋转可见色移效果。', '');
+    }
+  });
 
   // 角度跳转
   var jumpBtns = document.querySelectorAll('.angle-jump button[data-a]');
