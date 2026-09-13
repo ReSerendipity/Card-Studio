@@ -24,11 +24,12 @@
   var mode = 'rotate';      // 拖拽模式：rotate=旋转卡片，pan=平移视角（放大后）
   var DEFAULT_CAM_Z = 7.2;
 
-  /* 弹簧物理参数（spring-damper） */
+  /* 弹簧物理参数（spring-damper，半隐式欧拉积分） */
   var targetY = 0;          // 目标旋转角（弧度）
-  var angVel = 0;           // 角速度
-  var SPRING_K = 140;       // 刚度：越大回弹越快
-  var SPRING_D = 16;        // 阻尼：越大停止越快（临界阻尼约 2*sqrt(K)=23.7）
+  var angVel = 0;           // 角速度（弧度/秒）
+  var SPRING_K = 90;        // 刚度：越大回弹越快
+  var SPRING_D = 20;        // 阻尼：临界阻尼=2*sqrt(K)≈18.97，取20为轻微过阻尼，无振荡
+  var MAX_ANG_VEL = 6;      // 角速度上限（弧度/秒），防止数值发散
   var lastFrameT = 0;
 
   function init(el) {
@@ -99,8 +100,13 @@
     });
     canvasEl.addEventListener('pointerup', function () {
       if (dragging && mode === 'rotate') {
-        // 松手：用拖拽末速度作为弹簧初始角速度（抛射感）
-        angVel = velX * 0.006 * 60;  // 转换为弧度/秒量级
+        // 松手：拖拽末速度 → 弹簧初始角速度（正确单位转换 px/ms → rad/s）
+        // 拖拽时每 ms 旋转 dx*0.006 rad，故 rad/s = velX * 0.006 * 1000 = velX * 6
+        var throwVel = velX * 6;
+        // 钳制上限，防止快速甩动导致数值发散
+        throwVel = Math.max(-MAX_ANG_VEL, Math.min(MAX_ANG_VEL, throwVel));
+        // 低于阈值视为静止点击，不给惯性
+        angVel = Math.abs(throwVel) > 0.15 ? throwVel : 0;
       }
       dragging = false; canvasEl.style.cursor = zoom > 1.35 ? 'move' : 'grab';
     });
@@ -305,7 +311,7 @@
     if (!running) return;
     requestAnimationFrame(loop);
     var now = performance.now();
-    var dt = lastFrameT ? Math.min(0.05, (now - lastFrameT) / 1000) : 1 / 60;
+    var dt = lastFrameT ? Math.min(0.033, (now - lastFrameT) / 1000) : 1 / 60;
     lastFrameT = now;
 
     if (autoRotate && !dragging) {
@@ -313,13 +319,16 @@
     }
 
     if (!dragging) {
-      // 弹簧-damper：current 趋向 targetY
+      // 弹簧-damper：current 趋向 targetY（半隐式欧拉：先更新速度，再更新位置）
       var diff = targetY - group.rotation.y;
       var accel = -SPRING_K * diff - SPRING_D * angVel;
       angVel += accel * dt;
+      // 角速度钳制，防止极端帧间隔下数值发散
+      if (angVel > MAX_ANG_VEL) angVel = MAX_ANG_VEL;
+      else if (angVel < -MAX_ANG_VEL) angVel = -MAX_ANG_VEL;
       group.rotation.y += angVel * dt;
-      // 低速钳制：避免浮点抖动
-      if (Math.abs(angVel) < 0.0005 && Math.abs(diff) < 0.0005) {
+      // 低速钳制：角速度和位移同时足够小时直接吸附到目标，避免浮点微振
+      if (Math.abs(angVel) < 0.005 && Math.abs(diff) < 0.005) {
         angVel = 0;
         group.rotation.y = targetY;
       }
