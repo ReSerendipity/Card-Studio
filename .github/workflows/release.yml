@@ -15,13 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: "src-tauri"
 
       - name: Build & publish Windows installer
         uses: tauri-apps/tauri-action@v0
@@ -42,8 +42,6 @@ jobs:
     name: Android (debug APK)
     needs: windows
     runs-on: ubuntu-latest
-    env:
-      ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
     steps:
       - uses: actions/checkout@v4
 
@@ -66,19 +64,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses || true
+
       - name: Install NDK
         run: sdkmanager "ndk;27.0.12077973"
 
-      - name: Install tauri-cli
-        run: npm install -g @tauri-apps/cli@^2
-
       - name: Tauri Android init
         working-directory: src-tauri
-        run: tauri android init
+        run: npx @tauri-apps/cli@^2 tauri android init
 
       - name: Build Android APK (debug)
         working-directory: src-tauri
-        run: tauri android build --apk
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
+        run: npx @tauri-apps/cli@^2 tauri android build --apk
 
       - name: Upload APK to release
         uses: softprops/action-gh-release@v2
