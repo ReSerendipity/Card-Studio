@@ -5,3 +5,9 @@
 
 编译产物在 `src-tauri/icons/`（9 档 PNG + 7 层 ICO，已随构建更新）。
 再生成方式：SVG → 无头 Edge 栅格化为 1024 PNG → Pillow 降采样出各档 PNG 与多图层 ICO。
+
+## 底板配色变体（同一叠扇卡，仅换最外层底板）
+- `card-studio-icon.svg`：白色底（默认）
+- `card-studio-icon-dark.svg`：暗夜紫黑底
+- `card-studio-icon-teal.svg`：墨青底（与 Lineart_Painter 同色系）
+- `card-studio-icon-plum.svg`：暮紫底
