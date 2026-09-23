@@ -23,6 +23,14 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # Pre-publish gate: compile check on src-tauri (locked to Cargo.lock).
+      # If this step fails the job aborts before tauri-action runs, so no
+      # Release is created. Extend this step with further checks as coverage
+      # grows (tests, lint) once those command surfaces exist in the repo.
+      - name: Pre-publish check (cargo build)
+        working-directory: src-tauri
+        run: cargo build --locked
+
       - name: Build & publish Windows installer
         uses: tauri-apps/tauri-action@v0
         env:

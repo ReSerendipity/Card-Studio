@@ -1,8 +1,19 @@
-/* UX 增强回归：示例加载、新个性化参数、缩放/复位 */
+/* UX 增强回归：示例加载、新个性化参数、缩放/复位
+ *
+ * 运行前置：
+ *   1. 启动开发服务器：node src-web/server.js   （默认 http://127.0.0.1:4173）
+ *   2. 以 CDP 远程调试模式启动 Chromium 系浏览器（本脚本默认端口 9223，会自动导航页面）：
+ *      msedge.exe --remote-debugging-port=9223 --user-data-dir=%TEMP%\\cs-cdp-v3
+ *      （chrome.exe 参数相同）
+ *   3. node docs/ux/ux_verify3.js
+ * 可用覆盖：--shot-dir=DIR / --cdp-port=N 或环境变量 CS_SHOT_DIR / CS_CDP_PORT
+ */
 const fs = require('fs');
+const path = require('path');
+const arg = n => (process.argv.find(a => a.startsWith('--' + n + '=')) || '').split('=').slice(1).join('=');
 (async () => {
-  const CDP_HTTP = 'http://127.0.0.1:9223';
-  const SHOT = 'C:/Users/Doro/card-studio/docs/ux/new';
+  const CDP_HTTP = 'http://127.0.0.1:' + (arg('cdp-port') || process.env.CS_CDP_PORT || '9223');
+  const SHOT = path.resolve(__dirname, arg('shot-dir') || process.env.CS_SHOT_DIR || 'verify3-shots');
   fs.mkdirSync(SHOT, { recursive: true });
   const list = await (await fetch(CDP_HTTP + '/json/list')).json();
   const page = list.find(t => t.type === 'page');
@@ -16,7 +27,7 @@ const fs = require('fs');
   const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) { const d = r.exceptionDetails; throw new Error('EXC: ' + (d.exception ? (d.exception.description || d.exception.value) : d.text)); } return r.result && r.result.value; };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const poll = async (expr, t, d) => { const s = Date.now(); while (Date.now() - s < t) { if (await ev(expr)) return; await sleep(600); } throw new Error('timeout ' + d); };
-  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(SHOT + '/' + name, Buffer.from(s.data, 'base64')); };
+  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(SHOT, name), Buffer.from(s.data, 'base64')); };
 
   await send('Page.enable');
   await send('Page.navigate', { url: 'http://127.0.0.1:4173/' });

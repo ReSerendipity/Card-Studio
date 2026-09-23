@@ -9,7 +9,10 @@
   /* ---------------- 主题切换（深/浅，localStorage 记忆） ---------------- */
   (function initTheme() {
     var saved = null;
-    try { saved = localStorage.getItem('cardstudio-theme'); } catch (e) {}
+    try { saved = localStorage.getItem('cardstudio-theme'); } catch (e) {
+      /* 隐私模式等下 localStorage 可能不可用，回退默认主题，仅记录诊断 */
+      console.warn('[app] 读取主题设置失败（回退默认主题）：', e && e.message);
+    }
     if (saved === 'light' || saved === 'dark') {
       document.documentElement.setAttribute('data-theme', saved);
     }
@@ -23,7 +26,9 @@
       var cur = document.documentElement.getAttribute('data-theme') || 'dark';
       var next = cur === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('cardstudio-theme', next); } catch (e) {}
+      try { localStorage.setItem('cardstudio-theme', next); } catch (e) {
+        console.warn('[app] 保存主题设置失败（本次会话内仍生效，重启后不记忆）：', e && e.message);
+      }
       applyIcon();
     });
   })();
@@ -47,11 +52,15 @@
       if (!el) return;
       o[id] = (el.type === 'checkbox') ? el.checked : el.value;
     });
-    try { localStorage.setItem(PKEY, JSON.stringify(o)); } catch (e) {}
+    try { localStorage.setItem(PKEY, JSON.stringify(o)); } catch (e) {
+      console.warn('[app] 保存参数失败（重启后不记忆）：', e && e.message);
+    }
   }
   function loadParams() {
     var raw = null;
-    try { raw = localStorage.getItem(PKEY); } catch (e) {}
+    try { raw = localStorage.getItem(PKEY); } catch (e) {
+      console.warn('[app] 读取参数失败（使用默认参数）：', e && e.message);
+    }
     if (!raw) return;
     try {
       var o = JSON.parse(raw);
@@ -63,7 +72,10 @@
         else el.value = o[id];
       });
       $('subject-val').textContent = ($('sl-subject').value) + '%';
-    } catch (e) {}
+    } catch (e) {
+      /* 参数损坏时回退默认值，仅记录诊断 */
+      console.warn('[app] 解析已存参数失败（使用默认参数）：', e && e.message);
+    }
   }
   PARAM_IDS.forEach(function (id) {
     var el = $(id);
@@ -247,9 +259,10 @@
       $('btn-export-config').disabled = false;
       $('btn-snap-view').disabled = false;
       $('viewer-hint').style.display = 'none';
-    }).catch(function () {
+    }).catch(function (e) {
       setProgress(0, false);
-      // 错误已在上层提示
+      // 错误状态已在上层提示；此处是异常链终点，必须记录一次诊断，否则 release 构建下异常被静吞
+      console.warn('[app] 生成失败（异常已终结，状态栏已提示）：', (e && e.message) || e);
     }).finally(function () {
       btn.disabled = false;
     });

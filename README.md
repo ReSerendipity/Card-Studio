@@ -41,7 +41,7 @@ card-studio/
 ├── assets/
 │   ├── models/               # ONNX 抠图模型（见下表）
 │   └── samples/              # 示例视角图（front/right/back/left 等）
-├── docs/                     # 设计文档、截图、测试脚本
+├── docs/                     # 设计文档、截图；回归脚本在 docs/ux/（见「改动后自检」）
 ├── README.md
 ├── start.bat                  # Windows 一键启动
 └── LICENSE
@@ -64,16 +64,44 @@ node server.js
 4. 点「生成闪卡」→ 右侧拖拽/滑动/键盘 ←→/跳转按钮旋转查看
 5. 导出 PNG（文件名带角度，如 `card_0deg.png`）或 config.json
 
+### 如何查看日志
+
+- **网页版**：浏览器 DevTools（F12）→ Console 面板。失败路径会输出带模块标识的警告（如 `[cutout]` / `[app]`），含具体原因；界面底部状态栏同步显示中文错误提示。
+- **Tauri 桌面版**：前端 `console.warn/error` 由 tauri-plugin-log 桥接入 Rust 日志，开发与发布构建均会写入应用日志目录（Windows：`%APPDATA%\com.cardstudio.app\logs`），直接用文本编辑器打开 `*.log` 即可检索失败原因。
+
+未引入额外日志框架，日志即浏览器原生 console 与 Tauri 插件默认文件输出。
+
+## 改动后自检（回归验证的唯一入口）
+
+**回归验证由本节登记**：入口即 `docs/ux/` 下当前在 git 跟踪中的 11 份 CDP 脚本（`git ls-files "docs/ux/*.js"` 可核对）。旧入口 `docs/ux_test.js`、`docs/cdp_test.js`、`docs/ux/diag.js` 等已删除，不得再引用。
+
+前置条件（脚本自身不启动任何服务，三条缺一不可）：
+
+1. 应用已运行：`node src-web/server.js` → `http://127.0.0.1:4173/`（脚本靠 URL 中的 `4173` 定位页面）
+2. Chrome/Edge 以远程调试端口启动（各脚本端口写死）：`--remote-debugging-port=9222` 或 `9224`；`ux_verify3.js` 需 `9223`
+3. Node ≥ 22（脚本使用全局 `fetch` / `WebSocket`），执行 `node docs/ux/<脚本名>`
+
+| 脚本（docs/ux/） | 覆盖范围 | CDP 端口 |
+| --- | --- | --- |
+| `final_verify.js` | 旋转全程可见性 + 导出 PNG 内容 | 9222 |
+| `final_verify2.js` | 180° 可见性、进度条、主体缩放、角度导出名、u2netp | 9222 |
+| `full_check.js` | 全功能路径体检，捕获 console 错误 | 9224 |
+| `pure_check.js` | 透明底直通（pure 模式）不抠图 | 9224 |
+| `ux_verify3.js` | 示例加载、个性化参数、缩放/复位 | 9223 |
+| `theme_shot.js` / `theme2_shot.js` | 深/浅双主题截图对比 | 9222 |
+| `model_compare.js` | 4 个抠图模型 mask 输出对比 | 9224 |
+| `isnet_diag.js` / `isnet_io.js` / `isnet_once.js` | ISNet 模型输入输出诊断 | 9224 |
+
+输出路径：以上 6 份回归/截图脚本默认写入仓库内 `docs/ux/<脚本名>-shots/`（如 `final-shots`、`theme-shots`），可用 `--shot-dir=DIR` 或环境变量 `CS_SHOT_DIR` 覆盖；CDP 端口可用 `--cdp-port=N` 或 `CS_CDP_PORT` 覆盖。诊断类脚本（`pure_check.js` 等）不落盘截图，无需输出目录。
+
 ## 抠图模型
 
 | 模型 | 大小 | 输入 | 定位 |
 | --- | --- | --- | --- |
 | MODNet FP32 | 25.9MB | 256×256 | 通用平衡（默认） |
-| MODNet INT8 | 6.6MB | 256×256 | 快速 / 移动端推荐 |
 | U²-Net 便携（u2netp） | 4.7MB | 320×320 | 轻量通用，比 MODNet 更稳 |
-| ISNet-Anime | ~176MB | 1024×1024 | 动漫立绘最佳 |
 
-模型按路径独立缓存，下拉切换自动重新加载。移动端 CPU 跑 MODNet INT8 足够；Tauri 阶段可升级原生 ONNX Runtime（自动 CoreML/NNAPI 加速）。
+模型按路径独立缓存，下拉切换自动重新加载。当前仓库内置以上两个模型，移动端 CPU 跑 MODNet FP32 足够；Tauri 阶段可升级原生 ONNX Runtime（自动 CoreML/NNAPI 加速）。
 
 ## 功能清单
 

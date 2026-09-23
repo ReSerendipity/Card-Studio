@@ -1,7 +1,19 @@
+/* 主题截图 v2：暗/亮主题初始态 + 生成后对比
+ *
+ * 运行前置：
+ *   1. 启动开发服务器：node src-web/server.js   （默认 http://127.0.0.1:4173）
+ *   2. 以 CDP 远程调试模式启动 Chromium 系浏览器，并打开一个指向 4173 页面的标签：
+ *      msedge.exe --remote-debugging-port=9222 --user-data-dir=%TEMP%\\cs-cdp http://127.0.0.1:4173/
+ *      （chrome.exe 参数相同）
+ *   3. node docs/ux/theme2_shot.js
+ * 可用覆盖：--shot-dir=DIR / --cdp-port=N 或环境变量 CS_SHOT_DIR / CS_CDP_PORT
+ */
 const fs = require('fs');
+const path = require('path');
+const arg = n => (process.argv.find(a => a.startsWith('--' + n + '=')) || '').split('=').slice(1).join('=');
 (async () => {
-  const CDP_HTTP = 'http://127.0.0.1:9222';
-  const SHOT = 'C:/Users/Doro/card-studio/docs/ux/theme2';
+  const CDP_HTTP = 'http://127.0.0.1:' + (arg('cdp-port') || process.env.CS_CDP_PORT || '9222');
+  const SHOT = path.resolve(__dirname, arg('shot-dir') || process.env.CS_SHOT_DIR || 'theme2-shots');
   fs.mkdirSync(SHOT, { recursive: true });
   const list = await (await fetch(CDP_HTTP + '/json/list')).json();
   const ws = new WebSocket(list.find(t => t.type === 'page' && t.url.indexOf('4173') >= 0).webSocketDebuggerUrl);
@@ -12,7 +24,7 @@ const fs = require('fs');
   const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) throw new Error('EXC'); return r.result && r.result.value; };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const poll = async (expr, t, d) => { const s = Date.now(); while (Date.now() - s < t) { if (await ev(expr)) return; await sleep(600); } throw new Error('timeout ' + d); };
-  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(SHOT + '/' + name, Buffer.from(s.data, 'base64')); };
+  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(SHOT, name), Buffer.from(s.data, 'base64')); };
 
   await send('Page.reload', { ignoreCache: true });
   await sleep(2500);
