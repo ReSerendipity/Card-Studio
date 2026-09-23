@@ -1,8 +1,19 @@
-/* 综合回归 v2：180° 可见性、进度条、主体缩放、角度导出名、u2netp 模型 */
+/* 综合回归 v2：180° 可见性、进度条、主体缩放、角度导出名、u2netp 模型
+ *
+ * 运行前置：
+ *   1. 启动开发服务器：node src-web/server.js   （默认 http://127.0.0.1:4173）
+ *   2. 以 CDP 远程调试模式启动 Chromium 系浏览器，并打开一个指向 4173 页面的标签：
+ *      msedge.exe --remote-debugging-port=9222 --user-data-dir=%TEMP%\\cs-cdp http://127.0.0.1:4173/
+ *      （chrome.exe 参数相同）
+ *   3. node docs/ux/final_verify2.js
+ * 可用覆盖：--shot-dir=DIR / --cdp-port=N 或环境变量 CS_SHOT_DIR / CS_CDP_PORT
+ */
 const fs = require('fs');
+const path = require('path');
+const arg = n => (process.argv.find(a => a.startsWith('--' + n + '=')) || '').split('=').slice(1).join('=');
 (async () => {
-  const CDP_HTTP = 'http://127.0.0.1:9222';
-  const SHOT = 'C:/Users/Doro/card-studio/docs/ux/final2';
+  const CDP_HTTP = 'http://127.0.0.1:' + (arg('cdp-port') || process.env.CS_CDP_PORT || '9222');
+  const SHOT = path.resolve(__dirname, arg('shot-dir') || process.env.CS_SHOT_DIR || 'final2-shots');
   fs.mkdirSync(SHOT, { recursive: true });
   const list = await (await fetch(CDP_HTTP + '/json/list')).json();
   const ws = new WebSocket(list.find(t => t.type === 'page' && t.url.indexOf('4173') >= 0).webSocketDebuggerUrl);
@@ -16,10 +27,10 @@ const fs = require('fs');
   const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) { const d = r.exceptionDetails; throw new Error('EXC: ' + (d.exception ? (d.exception.description || d.exception.value) : d.text)); } return r.result && r.result.value; };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const poll = async (expr, t, d) => { const s = Date.now(); while (Date.now() - s < t) { if (await ev(expr)) return; await sleep(600); } throw new Error('timeout ' + d); };
-  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(SHOT + '/' + name, Buffer.from(s.data, 'base64')); };
+  const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(SHOT, name), Buffer.from(s.data, 'base64')); };
 
   await send('Page.enable');
-  await send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: 'C:/Users/Doro/card-studio/docs/dl', eventsEnabled: true });
+  await send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: SHOT, eventsEnabled: true });
   await send('Page.reload', { ignoreCache: true });
   await sleep(2500);
   await poll(`typeof window.Viewer !== 'undefined'`, 10000, 'ready');

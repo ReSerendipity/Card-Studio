@@ -1,0 +1,218 @@
+{
+  "summary": {
+    "projectName": "Card-Studio",
+    "locale": "zh-CN",
+    "modelId": "agent-work-loop-v4",
+    "reportContractVersion": 26,
+    "overview": "项目有清晰的单点入口（README）与可运行的本地启动路径，但交付边界在发布前没有任何已定义的校验步骤，仓库内唯一成型的回归验证路由在当前工作区不可执行，且文档与代码资产之间存在已证实的模型清单漂移。",
+    "aiAgentPractice": {
+      "inspectedSurfaces": [],
+      "coverageRows": [
+        {
+          "surface": "Skills",
+          "scopes": [
+            "Plugin"
+          ],
+          "count": 4,
+          "paths": [
+            "~/.qoder/plugins/cache/qoder-bundler/better-harness/skills/better-harness/SKILL.md",
+            "~/.qoder/plugins/cache/qoder-bundler/computer-use/skills/computer-use/SKILL.md",
+            "~/.qoder/plugins/cache/qoder-bundler/qoder-create-plugin/skills/create-plugin/SKILL.md",
+            "~/.qoder/plugins/cache/qoderapp-bundler/qoder-context/1.0.61.7f8d7bb7/skills/qoder-context-knowledge-plan/SKILL.md"
+          ]
+        },
+        {
+          "surface": "Hooks",
+          "scopes": [
+            "Plugin"
+          ],
+          "count": 5,
+          "paths": [
+            "~/.qoder/plugins/cache/qoderapp-bundler/qoder-context/1.0.61.7f8d7bb7/hooks/hooks.json"
+          ]
+        },
+        {
+          "surface": "MCP",
+          "scopes": [
+            "Plugin"
+          ],
+          "count": 2,
+          "paths": [
+            "~/.qoder/plugins/cache/qoder-bundler/computer-use/.mcp.json",
+            "~/.qoder/plugins/cache/qoderapp-bundler/qoder-context/1.0.61.7f8d7bb7/mcp.json"
+          ]
+        },
+        {
+          "surface": "Workflows",
+          "scopes": [
+            "Project"
+          ],
+          "count": 1,
+          "paths": [
+            ".github/workflows/release.yml"
+          ]
+        },
+        {
+          "surface": "Plugins",
+          "scopes": [
+            "Plugin"
+          ],
+          "count": 4,
+          "paths": [
+            "~/.qoder/plugins/cache/qoder-bundler/better-harness/.qoder-plugin/plugin.json",
+            "~/.qoder/plugins/cache/qoder-bundler/computer-use/.qoder-plugin/plugin.json",
+            "~/.qoder/plugins/cache/qoderapp-bundler/qoder-context/1.0.61.7f8d7bb7/.qoder-plugin/plugin.json",
+            "~/.qoder/plugins/cache/qoder-bundler/qoder-create-plugin"
+          ]
+        },
+        {
+          "surface": "Rules",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Commands",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Custom Agents",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Memories",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        }
+      ],
+      "repositorySourceRows": []
+    },
+    "assignmentSummaries": [],
+    "dimensions": [
+      {
+        "id": "task-understanding",
+        "label": "任务理解",
+        "score": 56,
+        "summary": "README 提供了完整的项目身份、技术决策与目录地图，核心模块（src-web/js）可一眼定位；但已打开的模型清单文档与代码配置同仓库现状存在证实的冲突，权威上下文会误导能力边界判断。",
+        "findingRefs": [
+          "model-list-doc-code-drift"
+        ]
+      },
+      {
+        "id": "controlled-execution",
+        "label": "可控执行",
+        "score": 62,
+        "summary": "start.bat 与零依赖的 src-web/server.js 构成可发现的启动路径，端口占用有友好提示；清单与锁文件齐备（workspace manifest 已观察到），但未从干净状态演练启动，权限边界行为保持未观察。",
+        "findingRefs": []
+      },
+      {
+        "id": "change-validation",
+        "label": "改动验证",
+        "score": 40,
+        "summary": "仓库内没有可运行的相关校验层：无测试文件、无脚本清单；docs/ux 下的 6 份 CDP 回归脚本因硬编码仓库外绝对路径而不可复现执行，核心路径的失败信号被空 catch 吞没且无任何日志出口，失败诊断路由被阻塞。",
+        "findingRefs": [
+          "ux-verify-scripts-not-runnable-in-workspace",
+          "core-paths-silent-failure-no-diagnostics",
+          "affected-check-routing-ownerless"
+        ]
+      },
+      {
+        "id": "reliable-delivery",
+        "label": "可靠交付",
+        "score": 45,
+        "summary": "真实交付边界存在（tag 触发的 GitHub Release 工作流），但该工作流在发布前未定义任何校验步骤，验收仅以「存在版本标签」为输入；回滚与恢复路径未在本次边界内观察到。",
+        "findingRefs": [
+          "release-publish-without-validation"
+        ]
+      },
+      {
+        "id": "learning-capture",
+        "label": "经验沉淀",
+        "score": 38,
+        "summary": "完成了有界复核：重复机会判定被观测边界阻塞（会话源根部分缺失/禁用、Memory 枚举口径矛盾、复发检测证据不足），既非干净的无候选窗口，也无可支持的重复流程候选；该缺口作为未观测证据边界保留，项目内无 Rules/Skills/AGENTS.md 等持久 owner，任何计数本身不构成发现。",
+        "findingRefs": []
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "release-publish-without-validation",
+      "title": "推送版本标签即直接发布安装包，发布前没有任何已定义的校验步骤",
+      "severity": "High",
+      "reason": "【事实】唯一的 CI 定义 .github/workflows/release.yml 由 push tags v* 触发，仅含两个构建 job：windows job 用 tauri-apps/tauri-action 直接构建并公开发布 nsis/msi 安装包（releaseDraft: false），android job 构建 debug APK 并用 softprops/action-gh-release 上传；全文 92 行没有任何 test/lint/type 类运行步骤，也没有 pull_request 触发器。【推断】流水线的验收输入只有「Git 标签存在」这一件事，任何坏修订只要打了标签就会成为公开版本，交付边界上没有可依赖的自动验收信号。【边界】本次评审未访问 Actions 历史，不声称已发布的版本存在缺陷，只声称工作流未定义发布前校验。",
+      "expectedOutput": [
+        "Update the existing Workflow owner identified by the reviewed evidence and retain a focused validation result."
+      ],
+      "expectedArtifact": "Workflow",
+      "aiFixPrompt": "/better-harness fix this issue\n\n在 .github/workflows/release.yml 的发布动作之前加入最小 pre-publish 校验 job，保持现有 tag 触发与发布边界不变。\n\n## 发现约束\n\n- 先盘点仓库内实际存在的可执行校验：本项目无 package.json、无测试文件、无 lint 配置；src-tauri 有 Cargo.toml（含 Cargo.lock）。不得假设或发明不存在的命令面。\n- 最小可行为：在 windows job 的 tauri-action 步骤之前增加一个校验步骤（例如在 src-tauri 上运行 cargo build 编译门），后续可按覆盖逐步补充。\n\n## 验证\n\n- 工作流 YAML 静态校验通过（发布步骤 needs 校验步骤）\n- 在校验步骤中失败时构建中止、不产生 Release；在测试分支演练一次负向用例后确认无标签被发布",
+      "dimensionRefs": [
+        "reliable-delivery"
+      ]
+    },
+    {
+      "id": "ux-verify-scripts-not-runnable-in-workspace",
+      "title": "仓库唯一的 UI 回归验证脚本硬编码仓库外旧绝对路径，在当前工作区不可复现执行",
+      "severity": "Medium",
+      "reason": "【事实】docs/ux 下 6 份 CDP 验证脚本（final_verify.js、final_verify2.js、full_check.js、ux_verify3.js、theme_shot.js、theme2_shot.js）把截图与下载输出目录写死为旧机器工作区外的绝对路径（盘符开头的 card-studio 旧目录，共 8 处字面量），且各自假定端口 9222/9223/9224 上已手动启动带 remote-debugging 的浏览器；当前仓库根为 Desktop/TEST/Card-Studio，脚本随仓库搬迁而路径未参数化。【推断】项目唯一成型的「改完→回归→留证」路由在新工作区不可复现执行，任何改动（含上述发布流水线涉及的构建）都缺少可调用的视觉/导出验证层。【边界】未实际运行脚本，不声称运行一定崩溃；静态可证的是输出目录不在仓库内、前置条件未在任何文档声明。",
+      "expectedOutput": [
+        "Update the existing Script owner identified by the reviewed evidence and retain a focused validation result."
+      ],
+      "expectedArtifact": "Script",
+      "aiFixPrompt": "/better-harness fix this issue\n\n把 docs/ux 下 6 份验证脚本（final_verify.js、final_verify2.js、full_check.js、ux_verify3.js、theme_shot.js、theme2_shot.js）的硬编码外部绝对路径改为仓库相对输出。\n\n## 发现约束\n\n- 逐文件定位 SHOT 与 downloadPath 字面量（grep 旧机器绝对路径可一次列全 8 处），改以仓库根下的 docs/ux 子目录为默认输出，并允许环境变量或参数覆盖。\n- 不改变脚本的断言逻辑与采集行为，仅解除路径与端口前置的不可发现性；在脚本头部注释声明所需的浏览器启动前置。\n\n## 验证\n\n- grep 确认仓库内不再残留旧机器绝对路径字面量\n- 在满足注释声明前置的本地环境跑通任意一份脚本，确认截图落在仓库内相对目录",
+      "dimensionRefs": [
+        "change-validation"
+      ]
+    },
+    {
+      "id": "model-list-doc-code-drift",
+      "title": "README 与模型配置仍列报两个已被删除的抠图模型，误导能力边界判断",
+      "severity": "Medium",
+      "reason": "【事实】README.md:69-76 的模型表仍列出 MODNet INT8（6.6MB）与 ISNet-Anime（~176MB）；src-web/js/cutout.js:24 的 MODEL_CONFIG 仍声明 'assets/models/isnet_anime.onnx'。而 git ls-files 仅含 modnet.onnx 与 u2netp.onnx，两个模型分别已在 fbbf4df（移除 404 的 INT8 模型选项）与 231769e（清理并提交大模型忽略）中删除；src-web/index.html 下拉已不暴露二者。【推断】阅读 README 或 MODEL_CONFIG 的开发者与编码代理会误判当前支持的抠图能力，可能基于死配置分支重新引入无效路径。【边界】终端用户在 UI 上点不到已删模型，本条影响的是权威上下文的可信度，不是线上故障。",
+      "expectedOutput": [
+        "Update the existing Document owner identified by the reviewed evidence and retain a focused validation result."
+      ],
+      "expectedArtifact": "Document",
+      "aiFixPrompt": "/better-harness fix this issue\n\n把抠图模型清单对齐到仓库实际存在的资产，消除 README.md 与 src-web/js/cutout.js 的漂移。\n\n## 发现约束\n\n- 以 git ls-files src-web/assets/models 的输出（当前仅 modnet.onnx、u2netp.onnx）为唯一事实来源。\n- README.md:69-76 模型表删除或标注已移除的两行，并同步第 76 行「移动端 CPU 跑 MODNet INT8 足够」的表述；移除 cutout.js:24 MODEL_CONFIG 中的 isnet_anime 死条目。\n\n## 验证\n\n- README 表格行、MODEL_CONFIG 键、index.html 选项与 git ls-files 模型清单四方一致\n- 前端加载无对已删模型路径的引用（grep isnet_anime、modnet_uint8 在 src-web 与 README 中不再命中功能性配置）",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "core-paths-silent-failure-no-diagnostics",
+      "title": "核心路径静默吞掉异常且仓库不提供任何可发现的日志或排障路由",
+      "severity": "Medium",
+      "reason": "【事实】src-web/js/cutout.js:38-44（WASM 环境准备）、cutout.js:78（session 释放）与 app.js 的 5 处 localStorage 读写（12/26/50/54/66）均为空 catch；全 src-web/js 的 console 调用命中数为 0（已复核），错误仅以中文状态文本呈现；src-tauri/src/lib.rs:5-11 的 tauri_plugin_log 只在 cfg!(debug_assertions) 分支注册，release 构建（即发布产物）不挂载任何 logger。【推断】抠图或参数持久化在 release 环境失败时，用户与编码代理都拿不到可关联的诊断信号；唯一机器可读的错误出口是 docs/ux 的 CDP 脚本，而该脚本又被上一条 finding 阻塞。【边界】不声称生产 WebView 完全无排障手段（DevTools、ONNX 内部日志未验证），只断言仓库自身未提供任何文档化、可发现的调试路由。",
+      "expectedOutput": [
+        "Update the existing Code owner identified by the reviewed evidence and retain a focused validation result."
+      ],
+      "expectedArtifact": "Code",
+      "aiFixPrompt": "/better-harness fix this issue\n\n为核心失败路径提供最小可读诊断，并解除 release 构建无日志的缺口；不改变业务行为。\n\n## 发现约束\n\n- 先确认现有信号：全 src-web/js 无 console 调用，release Tauri（src-tauri/src/lib.rs 的 debug_assertions 分支）不注册 tauri_plugin_log。\n- 至少处理 cutout.js 两处与 app.js 五处空 catch：在吞异常前记录一条含模块标识与原因的可读 console 警告；错误状态文本保持现有中文风格。\n- 在 README 开发/调试章节补一段「如何查看日志」的简短路由说明（浏览器 DevTools 与 Tauri 日志），不引入新框架。\n\n## 验证\n\n- grep 确认无空 catch（每个 catch 均有记录或有注释说明忽略理由）\n- release 构建下触发一次抠图失败路径，状态与日志中能读到具体失败原因",
+      "dimensionRefs": [
+        "change-validation"
+      ]
+    },
+    {
+      "id": "affected-check-routing-ownerless",
+      "title": "变更自检无登记入口，工具推荐路由指向已被删除的脚本",
+      "severity": "Medium",
+      "reason": "【事实】项目 harness 输出的 followUpActions.validate-impact.files 为空，agentInstructions 与 coreCodeRules 均为 missing；其 sync-localization 与 sync-documentation 建议路由指向 docs/ux_test.js、docs/cdp_test.js、docs/ux/dl_diag.js、docs/ux/dbg_rot 系列、docs/ux/diag.js 等文件，而这些路径全部在提交 231769e（chore: 清理调试脚本）中被删除，当前 git ls-files 无一个存在。仓库无 package.json/Cargo scripts/AGENTS.md，README.md:44 仅以「docs/ 设计文档、截图、测试脚本」一句话带过。【推断】项目侧没有任何被登记的 affected-check 入口，自动化只能按历史文件名模式生成 companion 路由，其终点是不存在的文件，形成不可达的自检建议。【边界】本条不将「无 AGENTS.md/testFiles=0」单独作为发现，只在其与「harness 输出指向具体已删文件 + validate-impact.files 为空」组合出的现时后果上成立。",
+      "expectedOutput": [
+        "Update the existing Document owner identified by the reviewed evidence and retain a focused validation result."
+      ],
+      "expectedArtifact": "Document",
+      "aiFixPrompt": "/better-harness fix this issue\n\n为回归/自检登记一个当前存在的唯一入口，清除指向已删文件的陈旧路由。\n\n## 发现约束\n\n- 确认哪些验证脚本当前真实存在（git ls-files docs/ux 下的 *.js），不要在建议中引用已删除的 docs/ux_test.js、docs/cdp_test.js、docs/ux/diag.js 等。\n- 在 README 增加最小「改动后如何自检」段落，点名现存脚本及其前置（浏览器调试端口），使 affected-check 有一个可发现的 owner；是否引入 AGENTS.md 或 package.json scripts 属后续决策，本条只登记现状。\n\n## 验证\n\n- README 自检段落引用的每个文件都存在于 git ls-files 输出\n- 项目内出现一处明确声明「谁负责回归验证」的入口，不再仅靠一句话注释",
+      "dimensionRefs": [
+        "change-validation"
+      ]
+    }
+  ]
+}

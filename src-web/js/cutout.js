@@ -16,12 +16,10 @@
   var wasmPathsSet = false;
 
   /* 模型配置表：path → 输入边长 + 归一化方式
-     norm='pm11'   : (x/255 - 0.5) / 0.5   ← MODNet / U²-Net（rembg 默认）
-     norm='imagenet': (x/255 - mean) / std  ← ISNet 官方（ImageNet mean/std） */
+     norm='pm11'   : (x/255 - 0.5) / 0.5   ← MODNet / U²-Net（rembg 默认） */
   var MODEL_CONFIG = {
     'assets/models/modnet.onnx': { size: 256, norm: 'pm11' },
-    'assets/models/u2netp.onnx': { size: 320, norm: 'pm11' },
-    'assets/models/isnet_anime.onnx': { size: 1024, norm: 'imagenet' }
+    'assets/models/u2netp.onnx': { size: 320, norm: 'pm11' }
   };
   function modelSize(path) {
     var c = MODEL_CONFIG[path];
@@ -40,7 +38,10 @@
         global.ort.env.wasm.wasmPaths = 'vendor/';
         global.ort.env.wasm.numThreads = 1;
       }
-    } catch (e) { /* 忽略 */ }
+    } catch (e) {
+      /* 配置失败不阻断抠图，仅记录诊断 */
+      console.warn('[cutout] WASM 环境配置失败（不阻断，可能回退默认路径）：', e && e.message);
+    }
   }
 
   /** 加载模型：按模型路径独立缓存，切换模型时自动重新加载 */
@@ -75,7 +76,14 @@
 
   /** 释放模型，便于切换精度 */
   function disposeModel() {
-    if (session) { try { session.release && session.release(); } catch (e) {} }
+    if (session) {
+      try {
+        session.release && session.release();
+      } catch (e) {
+        /* 释放失败不影响切换模型，仅记录诊断 */
+        console.warn('[cutout] 模型 session 释放失败（不影响切换模型）：', e && e.message);
+      }
+    }
     session = null; sessionPath = null; loading = null; loadingPath = null;
   }
 
