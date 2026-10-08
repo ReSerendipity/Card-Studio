@@ -7,6 +7,9 @@ Thumbs.db
 src-web/exports/
 src-web/tmp/
 
+# AI toolchain artifacts (Qoder better-harness)
+.qoder/
+
 # Large binaries (models + wasm + screenshots) — not for git
 *.onnx
 *.wasm
