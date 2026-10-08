@@ -1,4 +1,4 @@
-/* 对比 4 个模型对同一图的 mask 输出 */
+/* 对比内置抠图模型对同一图的 mask 输出（MODNet / U²-Net）*/
 const fs = require('fs');
 (async () => {
   const CDP_HTTP = 'http://127.0.0.1:9224';
@@ -30,7 +30,8 @@ const fs = require('fs');
   })()`);
 
   const models = [
-    ['ISNet [−1,1]', 'assets/models/isnet_anime.onnx', 'pm11'],
+    ['MODNet', 'assets/models/modnet.onnx', 'pm11'],
+    ['U²-Net (u2netp)', 'assets/models/u2netp.onnx', 'pm11'],
   ];
   for (const [name, path, norm] of models) {
     await ev(`window._norm = '${norm}'; true`);
@@ -38,7 +39,7 @@ const fs = require('fs');
     try {
       const stat = await ev(`(async()=>{
         const sess = await Cutout.loadModel('${path}');
-        const s = { 'assets/models/modnet.onnx':256,'assets/models/modnet_uint8.onnx':256,'assets/models/u2netp.onnx':320,'assets/models/isnet_anime.onnx':1024 }['${path}'] || 256;
+        const s = { 'assets/models/modnet.onnx':256,'assets/models/u2netp.onnx':320 }['${path}'] || 256;
         const cv = document.createElement('canvas'); cv.width=s; cv.height=s;
         const ctx = cv.getContext('2d');
         ctx.imageSmoothingQuality='high';

@@ -30,20 +30,30 @@ card-studio/
 ├── src-web/                  # 前端核心（网页版）
 │   ├── index.html            # 入口
 │   ├── server.js             # 零依赖 Node 静态服务器（含 no-cache 头）
-│   ├── start.bat             # Windows 双击启动
 │   ├── css/style.css         # 暗夜香槟金 / 象牙浅白 双主题（CSS 变量）
 │   ├── js/
 │   │   ├── app.js            # 主控：上传→抠图→合成→导出 + 主题切换
 │   │   ├── cutout.js         # ONNX 抠图（model/keep/key 三模式）
 │   │   ├── compose.js        # Canvas2D 卡面合成
 │   │   └── viewer.js         # Three.js 3D 查看器
+│   ├── assets/
+│   │   ├── models/           # ONNX 抠图模型（modnet / u2netp，见下表）
+│   │   └── samples/          # 示例视角图（front/right/back/left 等）
 │   └── vendor/               # 本地化 three.min.js、onnxruntime-web + wasm
-├── assets/
-│   ├── models/               # ONNX 抠图模型（见下表）
-│   └── samples/              # 示例视角图（front/right/back/left 等）
-├── docs/                     # 设计文档、截图；回归脚本在 docs/ux/（见「改动后自检」）
+├── src-tauri/                # Tauri v2 桌面/移动壳（第二阶段，暂缓）
+│   ├── src/                  # Rust 入口（main.rs / lib.rs，含日志插件）
+│   ├── capabilities/         # 权限声明
+│   ├── icons/                # 应用图标（由 docs/icons/ 生成）
+│   ├── Cargo.toml / Cargo.lock
+│   └── tauri.conf.json       # 打包配置（frontendDist=../src-web）
+├── docs/                     # 设计文档与截图；回归脚本在 docs/ux/（见「改动后自检」）
+│   ├── README.internal.md    # （对内）维护者备忘
+│   ├── icons/                # 图标设计源（SVG + 展示页）
+│   └── ux/                   # 回归/诊断 CDP 脚本
+├── .github/workflows/        # pages.yml（Pages 部署）、release.yml（发版）
+├── AGENTS.md                 # AI 辅助开发指南（文档分区约定）
+├── start.bat                 # Windows 一键启动
 ├── README.md
-├── start.bat                  # Windows 一键启动
 └── LICENSE
 ```
 
@@ -118,10 +128,3 @@ node server.js
 1. **第一阶段（已完成）**：纯 Web 版功能闭环，端到端验证通过
 2. **第二阶段（暂缓）**：套 Tauri v2 壳，出 Windows 桌面版
 3. **第三阶段（暂缓）**：Tauri Android / iOS 移动端打包
-
-## 工程备忘
-
-- 180° 背面黑屏根因：PlaneGeometry 默认单面渲染 → 已改 `THREE.DoubleSide`。
-- 服务器对 html/js/css/json 发 `Cache-Control: no-cache`，改代码刷新即生效。
-- 模型按路径独立缓存，切换模型自动重新加载（修复 session 单例导致"换模型不生效"）。
-- 未生成时查看器卡片 mesh 初始隐藏，避免白色空卡面块。
