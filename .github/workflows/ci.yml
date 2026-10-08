@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  syntax:
+    name: JS 语法完整性（零构建前端）
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 仓库是零构建的原生 JS 前端（无 package.json / 无打包步骤），
+      # 语法错误只会在浏览器运行时暴露，故在 push/PR 上先做静态检查。
+      # vendor/ 下是第三方压缩产物，不纳入。
+      - name: node --check on first-party JS
+        run: |
+          set -e
+          files=$(ls src-web/js/*.js src-web/server.js docs/ux/*.js)
+          echo "$files" | wc -l
+          for f in $files; do
+            node --check "$f"
+            echo "OK  $f"
+          done
