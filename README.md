@@ -50,14 +50,17 @@ card-studio/
 │   ├── README.internal.md    # （对内）维护者备忘
 │   ├── icons/                # 图标设计源（SVG + 展示页）
 │   └── ux/                   # 回归/诊断 CDP 脚本
-├── .github/workflows/        # pages.yml（Pages 部署）、release.yml（发版）
+├── .github/                  # workflows（ci 语法门禁 / pages 部署 / release 发版）、PR·Issue 模板、dependabot.yml
 ├── AGENTS.md                 # AI 辅助开发指南（文档分区约定）
+├── CONTRIBUTING.md           # 贡献指南
 ├── start.bat                 # Windows 一键启动
 ├── README.md
 └── LICENSE
 ```
 
 ## 运行方式
+
+在线体验（零安装，由 GitHub Pages 部署）：<https://reserendipity.github.io/Card-Studio/>
 
 ```bash
 # 方式一：双击 start.bat（Windows 推荐，独立窗口不被回收）
@@ -99,7 +102,7 @@ node server.js
 | `pure_check.js` | 透明底直通（pure 模式）不抠图 | 9224 |
 | `ux_verify3.js` | 示例加载、个性化参数、缩放/复位 | 9223 |
 | `theme_shot.js` / `theme2_shot.js` | 深/浅双主题截图对比 | 9222 |
-| `model_compare.js` | 4 个抠图模型 mask 输出对比 | 9224 |
+| `model_compare.js` | 内置抠图模型（MODNet / U²-Net）mask 输出对比 | 9224 |
 | `isnet_diag.js` / `isnet_io.js` / `isnet_once.js` | ISNet 模型输入输出诊断 | 9224 |
 
 输出路径：以上 6 份回归/截图脚本默认写入仓库内 `docs/ux/<脚本名>-shots/`（如 `final-shots`、`theme-shots`），可用 `--shot-dir=DIR` 或环境变量 `CS_SHOT_DIR` 覆盖；CDP 端口可用 `--cdp-port=N` 或 `CS_CDP_PORT` 覆盖。诊断类脚本（`pure_check.js` 等）不落盘截图，无需输出目录。
@@ -128,3 +131,7 @@ node server.js
 1. **第一阶段（已完成）**：纯 Web 版功能闭环，端到端验证通过
 2. **第二阶段（暂缓）**：套 Tauri v2 壳，出 Windows 桌面版
 3. **第三阶段（暂缓）**：Tauri Android / iOS 移动端打包
+
+## 许可证
+
+本项目以 [Apache-2.0](LICENSE) 许可证发布。© 2026 ReSerendipity
