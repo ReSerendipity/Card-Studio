@@ -41,7 +41,9 @@ const server = http.createServer((req, res) => {
       const ext = path.extname(fp).toLowerCase();
       const isStatic = ['.html', '.js', '.css', '.json'].indexOf(ext) >= 0;
       const headers = {
-        'Content-Type': MIME[ext] || 'application/octet-stream'
+        'Content-Type': MIME[ext] || 'application/octet-stream',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'no-referrer'
       };
       if (isStatic) {
         // 页面/脚本/样式禁用缓存，保证每次改动即时生效（修复"看不到新版"问题）
