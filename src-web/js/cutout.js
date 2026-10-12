@@ -17,9 +17,12 @@
 
   /* 模型配置表：path → 输入边长 + 归一化方式
      norm='pm11'   : (x/255 - 0.5) / 0.5   ← MODNet / U²-Net（rembg 默认） */
+  /* 模型台账：bytes/SHA256/上游锚定依据见 THIRD_PARTY_NOTICES.md §二（模型权重）。
+     u2netp 已对 rembg v0.0.0 资产做 SHA256 字节锚定（NOTICES:99）；
+     modnet 上游不在任何 git 历史（NOTICES:88 实测），sha256 暂空待有权重渠道后补。 */
   var MODEL_CONFIG = {
-    'assets/models/modnet.onnx': { size: 256, norm: 'pm11' },
-    'assets/models/u2netp.onnx': { size: 320, norm: 'pm11' }
+    'assets/models/modnet.onnx': { size: 256, norm: 'pm11', bytes: 25888640, sha256: '', source: 'ZHKKKe/MODNet (Apache-2.0)' },
+    'assets/models/u2netp.onnx': { size: 320, norm: 'pm11', bytes: 4574861, sha256: '309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8', source: 'xuebinqin/U-2-Net via danielgatis/rembg v0.0.0 (Apache-2.0)' }
   };
   function modelSize(path) {
     var c = MODEL_CONFIG[path];
