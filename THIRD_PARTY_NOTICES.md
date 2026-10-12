@@ -5,7 +5,11 @@
 本仓的第三方不是"构建时拉取的依赖"，而是**直接放在 `src-web/` 里、随 Web 端与桌面安装包一起发出去的实体文件**，
 所以逐条列出，包括体积——`vendor/` 与 `assets/models/` 合计约 133 MB，是本仓发布物体积的主要构成。
 
-登记对象：`Card-Studio @ 9262e9681aaf2b0b54f35c1257e072cba0643196`
+登记基准：`Card-Studio @ 9262e9681aaf2b0b54f35c1257e072cba0643196`（该 ref 共 110 个 blob）——下文逐条体积与逐字节比对都是在这份文件树上做的。
+
+台账复核：当前 `main` tip 为 `2f661ac130d656374a03270617ceac0770b2befc`（111 个 blob）。`compare/9262e96…2f661ac` 的差集只有本文件自身（`status=ahead`、`ahead_by=1`），即上述被登记的第三方文件在本文件落地之后一个字节都没动过。
+
+最后核验日期：2026-10-12（`git/trees?recursive=1`，`truncated=false`）。
 
 ---
 
@@ -79,8 +83,12 @@ console.warn('Scripts "build/three.js" and "build/three.min.js" are deprecated w
 | 许可证 | **Apache-2.0**（该仓 `LICENSE` 11,357 B） |
 | **权重被明确覆盖的依据** | 该仓 `README.md:101-102` 逐字：`## License` / `The code, models, and demos in this repository (excluding GIF files under the folder `doc/gif`) are released under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) license.` ⇒ 该声明**显式包含 models**，故本例不存在"权重另属非商用许可"的落差 |
 
-置信度：**中**。该仓无 tag/release，本仓这份 25,888,640 B 权重对应上游哪个提交**未锚定**。
-若需将本仓用于商用产品，建议补一次哈希比对（把本仓文件的 SHA256 与上游发布物对齐）后再升为高。
+置信度：**中**。锚定这份权重的版本需要一次哈希比对，而 GitHub 侧给不出可与之比对的对方（2026-10-12 实测两次只读查询）：
+
+- 上游 `ZHKKKe/MODNet @ master` 的文件树共 34 个 blob（`truncated=false`），其中**没有任何 `.onnx` / `.pth` / `.pt`** ⇒ 权重不在该仓的 git 历史里，不存在能与本仓这份 25,888,640 B 对齐的「上游提交」。
+- 上游存放权重的 `danielgatis/rembg` release `v0.0.0`（41 个资产）里**没有 `modnet.onnx`**。
+
+⇒ 要把本条升为「高」，需要的是上游在其文档中指定的外部渠道原始权重文件，以及该渠道与作者身份的对应关系；仅在本仓与 GitHub 之间比对无法完成锚定。
 
 ### 4. `src-web/assets/models/u2netp.onnx`（4,574,861 B）— **Apache-2.0**
 
@@ -88,10 +96,13 @@ console.warn('Scripts "build/three.js" and "build/three.min.js" are deprecated w
 |---|---|
 | 权重原始来源 | `xuebinqin/U-2-Net`（`master`），其仓 `LICENSE` 11,357 B = **Apache-2.0** |
 | 分发渠道 | `danielgatis/rembg` 的 release `v0.0.0` 资产 |
+| 字节锚定（2026-10-12 实测） | 本仓这份与 rembg release `v0.0.0` 的资产 `u2netp.onnx` **SHA256 相同**：`309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8`（4,574,861 B，两侧字节数一致） ⇒ 本仓持有的是上游发布物的原样副本，未重导出、未改动 |
 | 来源指认的依据 | rembg `README.md:516` 对 `u2netp` 明写 `[source](https://github.com/xuebinqin/U-2-Net)` |
 | 关于 rembg 自身的 MIT | rembg 只声明**其代码**为 MIT（`README.md:599`），该声明**不覆盖**它列出的模型权重 ⇒ 权重的许可回到上表的来源仓，即 Apache-2.0 |
 
 置信度：**中**。U-2-Net 仓内没有单独针对权重的许可段落，Apache-2.0 的依据是**仓级 LICENSE + 分发渠道的来源指认**；权重本身无版本号。
+
+上表的字节锚定只把「本仓这份 == rembg 发布的那份」从推断升为实测，**不改变许可结论**：它证明的是分发物一致，不是授权范围。
 
 ---
 
