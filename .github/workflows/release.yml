@@ -46,6 +46,37 @@ jobs:
           releaseDraft: false
           prerelease: false
 
+      - name: Generate SBOM and attach to release (SPDX JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          path: src-tauri/Cargo.lock
+          artifact-name: Card-Studio-sbom.spdx.json
+          upload-artifact: true
+          upload-release-assets: true
+
+      - name: SHA256 checksums for installers
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse "src-tauri/target/release/bundle" -Include *.msi,*.exe
+          if (-not $files) { Write-Error "no installer found"; exit 1 }
+          ($files | Get-FileHash -Algorithm SHA256 | ForEach-Object { "{0}  {1}" -f $_.Hash.ToLower(), (Split-Path $_.Path -Leaf) }) | Out-File -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+
+      - name: Upload SHA256SUMS.txt to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: SHA256SUMS.txt
+          fail_on_unmatched_files: true
+
+      - name: Upload bundle for size-budget gate（配合 ITEM 7）
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-bundle
+          path: src-tauri/target/release/bundle/**/*
+          retention-days: 3
+
   android:
     name: Android (debug APK)
     needs: windows
@@ -97,3 +128,24 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           fail_on_unmatched_files: false
+
+  size-budget:
+    name: 包体积预算门禁（Windows bundle）
+    needs: windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-bundle
+          path: bundle
+      - name: Enforce size budget
+        run: |
+          total=$(du -sm bundle | cut -f1)
+          threshold=200
+          echo "bundle total = ${total} MB / budget ${threshold} MB"
+          if [ "$total" -gt "$threshold" ]; then
+            echo "SIZE_BUDGET_EXCEEDED: ${total}MB > ${threshold}MB"
+            exit 1
+          fi
+          echo SIZE_BUDGET_OK
