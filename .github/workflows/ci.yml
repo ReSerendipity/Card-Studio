@@ -13,6 +13,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  audit:
+    name: 依赖漏洞扫描（cargo audit + cargo deny licenses）
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo audit（依赖漏洞扫描）
+        working-directory: src-tauri
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+      - name: cargo deny check licenses（许可证门禁，需 deny.toml，见 ITEM 5）
+        working-directory: src-tauri
+        run: |
+          cargo install cargo-deny --locked
+          cargo deny check licenses
   syntax:
     name: JS 语法完整性（零构建前端）
     runs-on: ubuntu-latest
@@ -35,3 +52,10 @@ jobs:
             node --check "$f"
             echo "OK  $f"
           done
+
+      - name: smoke (server up + HTTP 200)
+        run: |
+          node src-web/server.js & SRV=$!
+          sleep 1
+          curl -sf http://127.0.0.1:4173/ >/dev/null && echo SMOKE_OK || { kill $SRV; exit 1; }
+          kill $SRV
