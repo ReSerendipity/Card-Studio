@@ -1,6 +1,7 @@
 [package]
 name = "card-studio"
 version = "1.0.0"
+license = "Apache-2.0"   # 与仓库 LICENSE / README / THIRD_PARTY_NOTICES 的声明一致
 description = "Card Studio · 多视角 3D 闪卡工坊"
 authors = ["Doro"]
 edition = "2021"
