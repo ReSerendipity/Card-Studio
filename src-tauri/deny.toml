@@ -1,0 +1,24 @@
+# cargo-deny 配置：许可证门禁（配合 ci.yml audit job 的 cargo deny check licenses）
+#
+# 首跑若报某许可证未被 allow，按输出把该许可证加入 allow（或确认后记 exceptions）
+# —— 不要为此删除本文件；删掉会让 cargo-deny 退回"无配置"状态，那时任何许可证都不被允许。
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "CC0-1.0",
+    "MPL-2.0",
+    "OpenSSL",
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
