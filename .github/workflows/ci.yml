@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       # 仓库是零构建的原生 JS 前端（无 package.json / 无打包步骤），
       # 语法错误只会在浏览器运行时暴露，故在 push/PR 上先做静态检查。

@@ -10,7 +10,7 @@
 | TD-1 | 渲染循环每帧无条件重绘 | P1 | 未处理 |
 | TD-2 | `docs/ux/` 的 CDP 前导被复制成 11 份 | P1 | 未处理 |
 | TD-3 | `.gitignore` 的忽略规则与已跟踪的二进制互相矛盾 | P1 | 未处理 |
-| TD-4 | CI 只做语法检查，且用的 Node 版本低于 README 要求 | P1 | 未处理 |
+| TD-4 | CI 只做语法检查，且用的 Node 版本低于 README 要求 | P1 | 部分处理 |
 
 ---
 
@@ -96,3 +96,7 @@ docs/*.png
 
 **建议动作**：先把 CI 的 Node 与 README 对齐（选一个版本写死在两边），再考虑把 `pure_check.js`
 这类不依赖设备的脚本放进 CI；依赖 CDP + 起服务的脚本不适合直接进 CI，不要为了绿而改成假通过。
+
+**处理记录（2026-10-17）**：Node 版本部分已完成——`ci.yml` syntax job 与 `release.yml` 两个 job
+的 `node-version` 由 "20" 提到 "22"（对齐 README ≥22 要求，同时消除 setup-action 的
+Node 20 deprecation 注解）。语法检查之外跑回归、`pure_check.js` 进 CI 尚未做，故状态记为「部分处理」。
