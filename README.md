@@ -112,7 +112,7 @@ node server.js
 | 模型 | 大小 | 输入 | 定位 |
 | --- | --- | --- | --- |
 | MODNet FP32 | 25.9MB | 256×256 | 通用平衡（默认） |
-| U²-Net 便携（u2netp） | 4.7MB | 320×320 | 轻量通用，比 MODNet 更稳 |
+| U²-Net 便携（u2netp） | 4.6MB | 320×320 | 轻量通用，比 MODNet 更稳 |
 
 模型按路径独立缓存，下拉切换自动重新加载。当前仓库内置以上两个模型，移动端 CPU 跑 MODNet FP32 足够；Tauri 阶段可升级原生 ONNX Runtime（自动 CoreML/NNAPI 加速）。
 
