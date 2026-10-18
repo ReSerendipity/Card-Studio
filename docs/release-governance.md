@@ -24,7 +24,7 @@
 - 遵循 **Keep a Changelog**：`Added / Changed / Fixed / Deprecated / Removed / Security`。
 - 每次合并 `main` 在 `[Unreleased]` 追加；type 映射 `feat→Added`、`fix→Fixed`、`refactor→Changed`。
 - 发版时 `[Unreleased]` → `[VERSION] - YYYY-MM-DD`。
-- 当前状态：`CHANGELOG.md` 尚未建立，首次发版时创建。
+- 当前状态：`CHANGELOG.md` 已建立（2026-10-18，根级，遵循 Keep a Changelog）。
 
 ## 3. 发布流程（远端）
 
