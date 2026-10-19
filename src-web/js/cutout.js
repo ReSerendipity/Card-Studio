@@ -17,7 +17,7 @@
 
   /* 模型配置表：path → 输入边长 + 归一化方式
      norm='pm11'   : (x/255 - 0.5) / 0.5   ← MODNet / U²-Net（rembg 默认） */
-  /* 模型台账：bytes/SHA256/上游锚定依据见 THIRD_PARTY_NOTICES.md §二（模型权重）。
+  /* 模型台账：bytes/SHA256/上游锚定依据见 docs/THIRD_PARTY_NOTICES.md §二（模型权重）。
      u2netp 已对 rembg v0.0.0 资产做 SHA256 字节锚定（NOTICES:99）；
      modnet 上游不在任何 git 历史（NOTICES:88 实测），sha256 暂空待有权重渠道后补。 */
   var MODEL_CONFIG = {
