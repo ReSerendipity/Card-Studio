@@ -46,12 +46,12 @@ card-studio/
 │   ├── icons/                # 应用图标（由 docs/icons/ 生成）
 │   ├── Cargo.toml / Cargo.lock
 │   └── tauri.conf.json       # 打包配置（frontendDist=../src-web）
-├── docs/                     # 设计文档与截图；回归脚本在 docs/ux/（见「改动后自检」）
-│   ├── README.internal.md    # （对内）维护者备忘
+├── docs/                     # 设计文档与截图、第三方声明；回归脚本在 docs/ux/（见「改动后自检」）
+│   ├── THIRD_PARTY_NOTICES.md # 第三方组件声明（Apache-2.0 依赖 / 模型台账）
 │   ├── icons/                # 图标设计源（SVG + 展示页）
 │   └── ux/                   # 回归/诊断 CDP 脚本
+├── local/                    # 对内文档（不入库）：local/AGENTS.md、local/README.internal.md
 ├── .github/                  # workflows（ci 语法门禁 / pages 部署 / release 发版）、PR·Issue 模板、dependabot.yml
-├── AGENTS.md                 # AI 辅助开发指南（文档分区约定）
 ├── CONTRIBUTING.md           # 贡献指南
 ├── start.bat                 # Windows 一键启动
 ├── README.md
