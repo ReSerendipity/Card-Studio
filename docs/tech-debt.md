@@ -77,7 +77,7 @@ docs/*.png
 请勿强制入库"。
 
 **影响**：三条规则（ignore / CONTRIBUTING / 实际跟踪）两两冲突，且它们都是**发布物的组成部分**——
-`THIRD_PARTY_NOTICES.md` 登记的就是这些 `.onnx` 与 `.wasm`。后果不是"仓库变脏"，而是
+`docs/THIRD_PARTY_NOTICES.md` 登记的就是这些 `.onnx` 与 `.wasm`。后果不是"仓库变脏"，而是
 按 `.gitignore` 做一次 `git clean -fdx` 之后，本地看起来正常、`git status` 干净，但页面会白掉一个模型。
 
 **建议动作**：这些是发布物，不该 ignore。把 `.gitignore` 改成**只忽略导出与临时件**，
