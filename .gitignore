@@ -22,3 +22,4 @@ node_modules/
 # Internal family docs — not committed to the public repo
 /local/
 AGENTS.md
+!/AGENTS.md
