@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 640" font-family="-apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a6d3b"/>
+    </marker>
+    <style>
+      .box   { fill:#ffffff; stroke:#8a6d3b; stroke-width:1.6; rx:8; }
+      .supp  { fill:#f7f3e8; stroke:#b8a67a; stroke-width:1.2; rx:6; }
+      .title { font-size:18px; font-weight:700; fill:#2b2b2b; }
+      .h     { font-size:14px; font-weight:600; fill:#2b2b2b; }
+      .t     { font-size:12px; fill:#555; }
+      .cap   { font-size:11px; fill:#888; }
+      .flow  { stroke:#8a6d3b; stroke-width:1.8; fill:none; marker-end:url(#arrow); }
+      .dash  { stroke:#b8a67a; stroke-width:1.2; fill:none; stroke-dasharray:4 3; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1080" height="640" fill="#fbfaf6"/>
+  <text x="40" y="40" class="title">Card Studio · 模块与数据流（基于仓库目录结构绘制）</text>
+  <text x="40" y="60" class="cap">纯前端本地运行：无 LLM、无 Python、无后端；抠图/合成/渲染全部在 WebView 内完成。</text>
+
+  <!-- main pipeline row -->
+  <!-- input -->
+  <rect x="40"  y="120" width="150" height="90" class="box"/>
+  <text x="115" y="148" text-anchor="middle" class="h">上传 N 张</text>
+  <text x="115" y="168" text-anchor="middle" class="h">视角位图</text>
+  <text x="115" y="190" text-anchor="middle" class="t">assets/samples/</text>
+  <text x="115" y="205" text-anchor="middle" class="t">逐张自定义角度</text>
+
+  <!-- cutout -->
+  <rect x="240" y="120" width="170" height="90" class="box"/>
+  <text x="325" y="146" text-anchor="middle" class="h">cutout.js</text>
+  <text x="325" y="166" text-anchor="middle" class="t">ONNX Runtime Web (WASM)</text>
+  <text x="325" y="184" text-anchor="middle" class="t">model / keep / key 三模式</text>
+  <text x="325" y="202" text-anchor="middle" class="t">→ 透明背景主体</text>
+
+  <!-- compose -->
+  <rect x="450" y="120" width="170" height="90" class="box"/>
+  <text x="535" y="146" text-anchor="middle" class="h">compose.js</text>
+  <text x="535" y="166" text-anchor="middle" class="t">Canvas2D 卡面合成</text>
+  <text x="535" y="184" text-anchor="middle" class="t">渐变/星空/纯色背景</text>
+  <text x="535" y="202" text-anchor="middle" class="t">烫金描边文字、稀有度</text>
+
+  <!-- viewer -->
+  <rect x="660" y="120" width="180" height="90" class="box"/>
+  <text x="750" y="146" text-anchor="middle" class="h">viewer.js</text>
+  <text x="750" y="166" text-anchor="middle" class="t">Three.js 3D 查看器</text>
+  <text x="750" y="184" text-anchor="middle" class="t">任意角度环形插值</text>
+  <text x="750" y="202" text-anchor="middle" class="t">拖拽 / 键盘 / 自动旋转</text>
+
+  <!-- export -->
+  <rect x="890" y="120" width="150" height="90" class="box"/>
+  <text x="965" y="148" text-anchor="middle" class="h">导出</text>
+  <text x="965" y="168" text-anchor="middle" class="t">card_&lt;angle&gt;.png</text>
+  <text x="965" y="186" text-anchor="middle" class="t">+ config.json</text>
+  <text x="965" y="204" text-anchor="middle" class="cap">app.js 主控串联全流程</text>
+
+  <!-- pipeline arrows -->
+  <line x1="190" y1="165" x2="238" y2="165" class="flow"/>
+  <line x1="410" y1="165" x2="448" y2="165" class="flow"/>
+  <line x1="620" y1="165" x2="658" y2="165" class="flow"/>
+  <line x1="840" y1="165" x2="888" y2="165" class="flow"/>
+
+  <!-- supporting: models -->
+  <rect x="240" y="270" width="170" height="80" class="supp"/>
+  <text x="325" y="294" text-anchor="middle" class="h">assets/models/</text>
+  <text x="325" y="314" text-anchor="middle" class="t">MODNet FP32 (25.9 MB)</text>
+  <text x="325" y="332" text-anchor="middle" class="t">U²-Net portable u2netp (4.6 MB)</text>
+  <path d="M325 270 L325 212" class="dash" marker-end="url(#arrow)"/>
+
+  <!-- supporting: vendor -->
+  <rect x="660" y="270" width="180" height="80" class="supp"/>
+  <text x="750" y="294" text-anchor="middle" class="h">vendor/（本地化）</text>
+  <text x="750" y="314" text-anchor="middle" class="t">three.min.js</text>
+  <text x="750" y="332" text-anchor="middle" class="t">onnxruntime-web + wasm</text>
+  <path d="M700 270 L690 212" class="dash" marker-end="url(#arrow)"/>
+  <path d="M800 270 L810 212" class="dash" marker-end="url(#arrow)"/>
+
+  <!-- serving -->
+  <rect x="40" y="420" width="300" height="80" class="supp"/>
+  <text x="190" y="446" text-anchor="middle" class="h">server.js（零依赖 Node 静态服务器）</text>
+  <text x="190" y="466" text-anchor="middle" class="t">no-cache 头 · 端口 4173</text>
+  <text x="190" y="484" text-anchor="middle" class="t">入口 index.html · css/style.css（深/浅双主题）</text>
+
+  <!-- tauri shell -->
+  <rect x="380" y="420" width="320" height="80" class="supp"/>
+  <text x="540" y="446" text-anchor="middle" class="h">src-tauri/（Tauri v2 壳，第二阶段暂缓）</text>
+  <text x="540" y="466" text-anchor="middle" class="t">Rust 入口 main.rs / lib.rs · 日志插件</text>
+  <text x="540" y="484" text-anchor="middle" class="t">frontendDist = ../src-web（桌面 + 移动端打包）</text>
+
+  <!-- CI / governance -->
+  <rect x="740" y="420" width="300" height="80" class="supp"/>
+  <text x="890" y="446" text-anchor="middle" class="h">.github/workflows/</text>
+  <text x="890" y="466" text-anchor="middle" class="t">ci.yml（语法门禁 + smoke）· pages.yml</text>
+  <text x="890" y="484" text-anchor="middle" class="t">release.yml · docs/ux/ 回归脚本</text>
+
+  <text x="40" y="560" class="cap">图注：本图依据仓库实际目录结构（src-web/js/*、assets/models、vendor、src-tauri、docs、.github）绘制，非运行界面截图。</text>
+  <text x="40" y="580" class="cap">在线体验：https://reserendipity.github.io/Card-Studio/　·　本地启动：cd src-web &amp;&amp; node server.js</text>
+</svg>

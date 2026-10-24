@@ -1,6 +1,20 @@
 # Card Studio · 闪卡工坊
 
+[![CI](https://github.com/ReSerendipity/Card-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/ReSerendipity/Card-Studio/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/ReSerendipity/Card-Studio)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/ReSerendipity/Card-Studio)](https://github.com/ReSerendipity/Card-Studio/releases/latest)
+
 多视角 3D 立体旋转闪光卡生成器（不依赖大语言模型，纯前端本地运行）。
+
+## English
+
+**Card Studio** is a browser-based, fully client-side generator for multi-view 3D "holographic" rotating trading cards — no LLM, no Python, no backend. Upload N photos of the same character or object from different angles; the app cuts out the subject locally with ONNX Runtime Web (WASM), composites a card on Canvas2D with gradient / starfield backgrounds and outlined gold-foil text, and renders a Three.js viewer that ring-interpolates between views as you drag. It exports PNG frames named by angle (e.g. `card_0deg.png`) plus a `config.json`.
+
+Quick start: run `cd src-web && node server.js` and open <http://127.0.0.1:4173/>, or try the [online demo](https://reserendipity.github.io/Card-Studio/). Built-in cutout models: MODNet FP32 and U²-Net (u2netp). A dark / light theme toggle is included. Released under Apache-2.0.
+
+![Card Studio modules and data flow — based on the repository directory structure](docs/assets/architecture.svg)
+
+*图 1：基于仓库目录结构绘制的模块关系图（非运行界面截图）。*
 
 ## 项目目标
 
