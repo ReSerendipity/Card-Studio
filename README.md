@@ -32,23 +32,23 @@
 
 ### 展示
 
-![主界面：上传视角图与卡面参数面板](docs/assets/readme-card-studio-1-main.png)
+![主界面：上传视角图与卡面参数面板](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main.png)
 
 *图 1 · 主界面：左侧上传与参数面板，右侧 3D 查看舞台（空状态）。*
 
-![生成完成：REZE 闪卡](docs/assets/readme-card-studio-2-generated.png)
+![生成完成：REZE 闪卡](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated.png)
 
 *图 2 · 生成完成：4 张视角图抠图合成后，紫渐变金边闪卡，SSR 稀有度，卡面烫金标题。*
 
-![背景样式变体：纯色蓝](docs/assets/readme-card-studio-3-style.png)
+![背景样式变体：纯色蓝](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style.png)
 
 *图 3 · 背景样式变体：切换为纯色蓝、宋体字，展示参数即时生效。*
 
-![任意角度旋转查看](docs/assets/readme-card-studio-4-rotated.png)
+![任意角度旋转查看](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated.png)
 
 *图 4 · 171° 旋转视角：相邻帧环形插值，角度与混合比实时显示。*
 
-![模块与数据流架构](docs/assets/readme-card-studio-architecture.svg)
+![模块与数据流架构](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
 *图 5 · 模块与数据流（基于仓库目录结构绘制，非运行界面截图）。*
 
@@ -152,23 +152,23 @@ Try it online (GitHub Pages, zero install): <https://reserendipity.github.io/Car
 
 ### Showcase
 
-![Main UI: upload panel and card parameters](docs/assets/readme-card-studio-1-main.png)
+![Main UI: upload panel and card parameters](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main.png)
 
 *Fig 1 · Main UI: left upload/parameters panel, right 3D stage (empty state).*
 
-![Generated REZE card](docs/assets/readme-card-studio-2-generated.png)
+![Generated REZE card](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated.png)
 
 *Fig 2 · Generated: 4 input views composited into a purple-gradient gold-foil SSR card.*
 
-![Style variant: solid blue background](docs/assets/readme-card-studio-3-style.png)
+![Style variant: solid blue background](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style.png)
 
 *Fig 3 · Style variant: solid blue background with serif font, applied instantly.*
 
-![Rotation at 171°](docs/assets/readme-card-studio-4-rotated.png)
+![Rotation at 171°](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated.png)
 
 *Fig 4 · Rotated view at 171°: ring-interpolated blending with live angle indicator.*
 
-![Module and data-flow architecture](docs/assets/readme-card-studio-architecture.svg)
+![Module and data-flow architecture](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
 *Fig 5 · Module and data-flow map (derived from the repository layout; not a runtime screenshot).*
 
