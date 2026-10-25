@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 620" font-family="-apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c5cb6"/>
+    </marker>
+    <style>
+      .box   { fill:#ffffff; stroke:#7c5cb6; stroke-width:1.6; }
+      .supp  { fill:#f4f0fb; stroke:#b39ddb; stroke-width:1.2; }
+      .title { font-size:19px; font-weight:700; fill:#1f1b2e; }
+      .h     { font-size:14px; font-weight:600; fill:#1f1b2e; }
+      .t     { font-size:12px; fill:#4a4458; }
+      .cap   { font-size:11px; fill:#8a8299; }
+      .flow  { stroke:#7c5cb6; stroke-width:1.8; fill:none; marker-end:url(#arr); }
+      .dash  { stroke:#b39ddb; stroke-width:1.2; fill:none; stroke-dasharray:4 3; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1080" height="620" fill="#fbfaff"/>
+  <text x="40" y="42" class="title">Card Studio · Pipeline &amp; Module Map</text>
+  <text x="40" y="62" class="cap">100% client-side: no LLM, no Python, no backend. Cutout / compositing / rendering all run in the WebView.</text>
+
+  <!-- Pipeline row -->
+  <rect x="40"  y="120" width="160" height="96" rx="8" class="box"/>
+  <text x="120" y="150" text-anchor="middle" class="h">Input</text>
+  <text x="120" y="170" text-anchor="middle" class="t">N angle photos</text>
+  <text x="120" y="188" text-anchor="middle" class="t">per-view angle label</text>
+  <text x="120" y="206" text-anchor="middle" class="cap">assets/samples/</text>
+
+  <rect x="240" y="120" width="180" height="96" rx="8" class="box"/>
+  <text x="330" y="148" text-anchor="middle" class="h">cutout.js</text>
+  <text x="330" y="168" text-anchor="middle" class="t">ONNX Runtime Web (WASM)</text>
+  <text x="330" y="186" text-anchor="middle" class="t">model / keep / key modes</text>
+  <text x="330" y="204" text-anchor="middle" class="cap">transparent subject</text>
+
+  <rect x="460" y="120" width="180" height="96" rx="8" class="box"/>
+  <text x="550" y="148" text-anchor="middle" class="h">compose.js</text>
+  <text x="550" y="168" text-anchor="middle" class="t">Canvas2D card builder</text>
+  <text x="550" y="186" text-anchor="middle" class="t">gradient / stars / solid bg</text>
+  <text x="550" y="204" text-anchor="middle" class="cap">gold-foil text, rarity</text>
+
+  <rect x="680" y="120" width="180" height="96" rx="8" class="box"/>
+  <text x="770" y="148" text-anchor="middle" class="h">viewer.js</text>
+  <text x="770" y="168" text-anchor="middle" class="t">Three.js 3D viewer</text>
+  <text x="770" y="186" text-anchor="middle" class="t">ring-interpolated rotation</text>
+  <text x="770" y="204" text-anchor="middle" class="cap">drag / keys / autorotate</text>
+
+  <rect x="900" y="120" width="150" height="96" rx="8" class="box"/>
+  <text x="975" y="150" text-anchor="middle" class="h">Export</text>
+  <text x="975" y="170" text-anchor="middle" class="t">card_&lt;angle&gt;.png</text>
+  <text x="975" y="188" text-anchor="middle" class="t">+ config.json</text>
+  <text x="975" y="206" text-anchor="middle" class="cap">app.js orchestrates</text>
+
+  <line x1="200" y1="168" x2="238" y2="168" class="flow"/>
+  <line x1="420" y1="168" x2="458" y2="168" class="flow"/>
+  <line x1="640" y1="168" x2="678" y2="168" class="flow"/>
+  <line x1="860" y1="168" x2="898" y2="168" class="flow"/>
+
+  <!-- Supporting: models -->
+  <rect x="240" y="270" width="180" height="86" rx="6" class="supp"/>
+  <text x="330" y="294" text-anchor="middle" class="h">assets/models/</text>
+  <text x="330" y="314" text-anchor="middle" class="t">MODNet FP32 · 25.9 MB</text>
+  <text x="330" y="332" text-anchor="middle" class="t">U²-Net u2netp · 4.6 MB</text>
+  <path d="M330 270 L330 218" class="dash" marker-end="url(#arr)"/>
+
+  <!-- Supporting: vendor -->
+  <rect x="680" y="270" width="180" height="86" rx="6" class="supp"/>
+  <text x="770" y="294" text-anchor="middle" class="h">vendor/ (vendored)</text>
+  <text x="770" y="314" text-anchor="middle" class="t">three.min.js</text>
+  <text x="770" y="332" text-anchor="middle" class="t">onnxruntime-web + wasm</text>
+  <path d="M730 270 L710 218" class="dash" marker-end="url(#arr)"/>
+  <path d="M810 270 L830 218" class="dash" marker-end="url(#arr)"/>
+
+  <!-- Serving / shell -->
+  <rect x="40" y="420" width="320" height="86" rx="6" class="supp"/>
+  <text x="200" y="446" text-anchor="middle" class="h">src-web/server.js</text>
+  <text x="200" y="466" text-anchor="middle" class="t">zero-dependency Node static server</text>
+  <text x="200" y="484" text-anchor="middle" class="cap">http://127.0.0.1:4173 · GitHub Pages deploy</text>
+
+  <rect x="400" y="420" width="300" height="86" rx="6" class="supp"/>
+  <text x="550" y="446" text-anchor="middle" class="h">src-tauri/ (planned, on hold)</text>
+  <text x="550" y="466" text-anchor="middle" class="t">Tauri v2 shell — desktop / mobile</text>
+  <text x="550" y="484" text-anchor="middle" class="cap">frontendDist points at ../src-web</text>
+
+  <rect x="730" y="420" width="320" height="86" rx="6" class="supp"/>
+  <text x="890" y="446" text-anchor="middle" class="h">Quality gates</text>
+  <text x="890" y="466" text-anchor="middle" class="t">CI: node --check · cargo audit · cargo deny</text>
+  <text x="890" y="484" text-anchor="middle" class="cap">docs/ux/ CDP regression scripts</text>
+
+  <text x="40" y="560" class="cap">All processing happens locally in the browser. No photo leaves the device.</text>
+</svg>
