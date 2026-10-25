@@ -1,151 +1,252 @@
 # Card Studio · 闪卡工坊
 
+多视角 3D 立体旋转闪光卡生成器 —— 纯前端本地运行，无 LLM、无 Python、无后端。
+
 [![CI](https://github.com/ReSerendipity/Card-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/ReSerendipity/Card-Studio/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/ReSerendipity/Card-Studio)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/ReSerendipity/Card-Studio)](https://github.com/ReSerendipity/Card-Studio/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![last commit](https://img.shields.io/github/last-commit/ReSerendipity/Card-Studio)](https://github.com/ReSerendipity/Card-Studio/commits/main)
+![JavaScript](https://img.shields.io/badge/JS-vanilla-yellow)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-多视角 3D 立体旋转闪光卡生成器（不依赖大语言模型，纯前端本地运行）。
+**[中文](#中文) · [English](#english)**
 
-## English
+---
 
-**Card Studio** is a browser-based, fully client-side generator for multi-view 3D "holographic" rotating trading cards — no LLM, no Python, no backend. Upload N photos of the same character or object from different angles; the app cuts out the subject locally with ONNX Runtime Web (WASM), composites a card on Canvas2D with gradient / starfield backgrounds and outlined gold-foil text, and renders a Three.js viewer that ring-interpolates between views as you drag. It exports PNG frames named by angle (e.g. `card_0deg.png`) plus a `config.json`.
+## 中文
 
-Quick start: run `cd src-web && node server.js` and open <http://127.0.0.1:4173/>, or try the [online demo](https://reserendipity.github.io/Card-Studio/). Built-in cutout models: MODNet FP32 and U²-Net (u2netp). A dark / light theme toggle is included. Released under Apache-2.0.
+### 项目简介
 
-![Card Studio modules and data flow — based on the repository directory structure](docs/assets/architecture.svg)
+上传 N 张同一角色/物体的不同视角位图，Card Studio 在浏览器内完成自动抠图、卡面合成与 3D 旋转查看，并导出按角度命名的 PNG 帧与 `config.json`。全程数据不离开本机。
 
-*图 1：基于仓库目录结构绘制的模块关系图（非运行界面截图）。*
+在线体验（GitHub Pages，零安装）：<https://reserendipity.github.io/Card-Studio/>
 
-## 项目目标
+### 核心特性
 
-用户上传 N 张同一角色/物体的不同视角位图，程序在浏览器内自动完成：
+- **本地推理抠图**：ONNX Runtime Web（WASM）跑内置 MODNet FP32 / U²-Net（u2netp）模型；另有「透明底直通」「色键去白底」两种零模型降级模式。
+- **Canvas2D 卡面合成**：渐变 / 星空 / 纯色 / 自定义背景，5 种字体，烫金/纯白/淡紫/深墨卡名字色，金边/银边/玫瑰金边框，角饰开关。
+- **Three.js 3D 查看器**：相邻视角帧环形插值，拖拽惯性、键盘 ←/→（6°/格）、0/90/180/270 跳转、任意角度输入、自动旋转、光泽/景深/转速滑块。
+- **按角度导出**：导出 `card_<angle>.png` 帧序列与 `config.json`，便于二次加工。
+- **双主题**：暗夜香槟金 / 象牙浅白，右上角 🌙/☀️ 切换，localStorage 记忆。
+- **零构建前端**：原生 JS，无打包步骤；Node 静态服务器即开即用。
 
-1. 自动抠图（ONNX Runtime Web 跑本地模型，透明背景）
-2. 分层合成（主体 + 渐变/星空/纯色背景 + 烫金描边文字）
-3. 生成 3D 旋转查看器：任意角度环形插值，转到哪个角度显示对应视角（相邻帧平滑过渡）
-4. 导出本地产物（PNG 帧 + config.json）
+### 展示
 
-## 技术决策
+![主界面：上传视角图与卡面参数面板](docs/assets/readme-card-studio-1-main.png)
 
-| 项 | 决策 |
-| --- | --- |
-| 输入形态 | B 方案：N 张视角位图（N≥1，按文件名排序，可逐张自定义角度） |
-| 抠图 | ONNX Runtime Web（WASM）跑本地 ONNX 模型，无 Python、无 LLM、无后端 |
-| 合成 | Canvas2D（统一画布、渐变背景、烫金/描边文字、PNG 导出） |
-| 3D 渲染 | Three.js + 自写拖拽交互（任意角度环形插值 + 双面渲染） |
-| 应用壳 | Tauri v2（桌面 + 移动，第二阶段，当前暂缓） |
+*图 1 · 主界面：左侧上传与参数面板，右侧 3D 查看舞台（空状态）。*
 
-关键约束：**全程无 LLM、无 Python 依赖**（抠图/合成/渲染全部在 WebView 内完成，以支持 iOS/Android 移动端）。
+![生成完成：REZE 闪卡](docs/assets/readme-card-studio-2-generated.png)
 
-## 目录结构
+*图 2 · 生成完成：4 张视角图抠图合成后，紫渐变金边闪卡，SSR 稀有度，卡面烫金标题。*
 
-```
-card-studio/
-├── src-web/                  # 前端核心（网页版）
-│   ├── index.html            # 入口
-│   ├── server.js             # 零依赖 Node 静态服务器（含 no-cache 头）
-│   ├── css/style.css         # 暗夜香槟金 / 象牙浅白 双主题（CSS 变量）
-│   ├── js/
-│   │   ├── app.js            # 主控：上传→抠图→合成→导出 + 主题切换
-│   │   ├── cutout.js         # ONNX 抠图（model/keep/key 三模式）
-│   │   ├── compose.js        # Canvas2D 卡面合成
-│   │   └── viewer.js         # Three.js 3D 查看器
-│   ├── assets/
-│   │   ├── models/           # ONNX 抠图模型（modnet / u2netp，见下表）
-│   │   └── samples/          # 示例视角图（front/right/back/left 等）
-│   └── vendor/               # 本地化 three.min.js、onnxruntime-web + wasm
-├── src-tauri/                # Tauri v2 桌面/移动壳（第二阶段，暂缓）
-│   ├── src/                  # Rust 入口（main.rs / lib.rs，含日志插件）
-│   ├── capabilities/         # 权限声明
-│   ├── icons/                # 应用图标（由 docs/icons/ 生成）
-│   ├── Cargo.toml / Cargo.lock
-│   └── tauri.conf.json       # 打包配置（frontendDist=../src-web）
-├── docs/                     # 设计文档与截图、第三方声明；回归脚本在 docs/ux/（见「改动后自检」）
-│   ├── THIRD_PARTY_NOTICES.md # 第三方组件声明（Apache-2.0 依赖 / 模型台账）
-│   ├── icons/                # 图标设计源（SVG + 展示页）
-│   └── ux/                   # 回归/诊断 CDP 脚本
-├── local/                    # 对内文档（不入库）：local/AGENTS.md、local/README.internal.md
-├── .github/                  # workflows（ci 语法门禁 / pages 部署 / release 发版）、PR·Issue 模板、dependabot.yml
-├── CONTRIBUTING.md           # 贡献指南
-├── start.bat                 # Windows 一键启动
-├── README.md
-└── LICENSE
-```
+![背景样式变体：纯色蓝](docs/assets/readme-card-studio-3-style.png)
 
-## 运行方式
+*图 3 · 背景样式变体：切换为纯色蓝、宋体字，展示参数即时生效。*
 
-在线体验（零安装，由 GitHub Pages 部署）：<https://reserendipity.github.io/Card-Studio/>
+![任意角度旋转查看](docs/assets/readme-card-studio-4-rotated.png)
+
+*图 4 · 171° 旋转视角：相邻帧环形插值，角度与混合比实时显示。*
+
+![模块与数据流架构](docs/assets/readme-card-studio-architecture.svg)
+
+*图 5 · 模块与数据流（基于仓库目录结构绘制，非运行界面截图）。*
+
+### 快速开始
+
+**环境要求**
+
+- Node.js ≥ 22（仅用于本地静态服务器；前端本身在浏览器内运行）
+- 现代浏览器（Chrome / Edge / Firefox / Safari，需支持 WebGL 2）
+
+**启动**
 
 ```bash
-# 方式一：双击 start.bat（Windows 推荐，独立窗口不被回收）
-# 方式二：命令行
-cd src-web
-node server.js
+git clone https://github.com/ReSerendipity/Card-Studio.git
+cd Card-Studio
+node src-web/server.js
 # 浏览器打开 http://127.0.0.1:4173/
 ```
 
-使用步骤：
-1. 上传 N 张视角图（可逐张在缩略图下改角度，默认 0/90/180/270 均匀分布）
-2. 选择抠图方式（自动模型 / 透明底直通 / 色键去白底）与模型精度
-3. 填写卡面参数（卡名、编号、稀有度、背景样式、背景色、字体、主体大小）
-4. 点「生成闪卡」→ 右侧拖拽/滑动/键盘 ←→/跳转按钮旋转查看
-5. 导出 PNG（文件名带角度，如 `card_0deg.png`）或 config.json
+Windows 用户可直接双击根目录 `start.bat`。
 
-### 如何查看日志
+**最小验证**
 
-- **网页版**：浏览器 DevTools（F12）→ Console 面板。失败路径会输出带模块标识的警告（如 `[cutout]` / `[app]`），含具体原因；界面底部状态栏同步显示中文错误提示。
-- **Tauri 桌面版**：前端 `console.warn/error` 由 tauri-plugin-log 桥接入 Rust 日志，开发与发布构建均会写入应用日志目录（Windows：`%APPDATA%\com.cardstudio.app\logs`），直接用文本编辑器打开 `*.log` 即可检索失败原因。
+1. 打开首页，左侧出现「① 上传视角图」面板。
+2. 点击面板下方「加载示例」按钮，载入 4 张内置视角图。
+3. 点击「✦ 生成闪卡」，等待状态栏出现「生成完成」。
+4. 在右侧舞台拖拽鼠标，卡牌应随之旋转；右上角「导出卡面 PNG」按钮变为可用。
 
-未引入额外日志框架，日志即浏览器原生 console 与 Tauri 插件默认文件输出。
+> 首次使用「自动抠图（MODNet 模型）」时会加载约 25.9 MB 的 ONNX 模型，请耐心等待；移动端 CPU 亦可跑。
 
-## 改动后自检（回归验证的唯一入口）
+### 系统要求与兼容性
 
-**回归验证由本节登记**：入口即 `docs/ux/` 下当前在 git 跟踪中的 11 份 CDP 脚本（`git ls-files "docs/ux/*.js"` 可核对）。旧入口 `docs/ux_test.js`、`docs/cdp_test.js`、`docs/ux/diag.js` 等已删除，不得再引用。
+- **桌面浏览器**：Chrome / Edge / Firefox / Safari 最新两个大版本。
+- **移动端浏览器**：iOS Safari / Android Chrome 可运行（WebView 内推理），受内存限制建议优先选 u2netp（4.6 MB）模型。
+- **桌面壳**：`src-tauri/` 为 Tauri v2 工程，当前处于第二阶段（暂缓）；v1.0.0 Release 附带 Windows `.msi` / `.exe` 安装包与 Android debug 签名 APK。
 
-前置条件（脚本自身不启动任何服务，三条缺一不可）：
+### 使用示例
 
-1. 应用已运行：`node src-web/server.js` → `http://127.0.0.1:4173/`（脚本靠 URL 中的 `4173` 定位页面）
-2. Chrome/Edge 以远程调试端口启动（各脚本端口写死）：`--remote-debugging-port=9222` 或 `9224`；`ux_verify3.js` 需 `9223`
-3. Node ≥ 22（脚本使用全局 `fetch` / `WebSocket`），执行 `node docs/ux/<脚本名>`
+1. **上传视角图**：点选或拖拽 N 张位图，按文件名排序；缩略图下方可逐张修改角度（默认 0/90/180/270 均匀分布）。
+2. **选择抠图方式**：自动模型 / 透明底直通 / 色键去白底。
+3. **填写卡面参数**：卡名、编号、稀有度（N/R/SR/SSR/UR）、背景样式与颜色、字体、边框。
+4. **生成**：点「生成闪卡」，状态栏与进度条实时反馈。
+5. **查看与导出**：拖拽旋转、滑块调光泽/景深/转速；点「导出卡面 PNG」导出当前帧，「导出配置 JSON」导出合成参数。
 
-| 脚本（docs/ux/） | 覆盖范围 | CDP 端口 |
-| --- | --- | --- |
-| `final_verify.js` | 旋转全程可见性 + 导出 PNG 内容 | 9222 |
-| `final_verify2.js` | 180° 可见性、进度条、主体缩放、角度导出名、u2netp | 9222 |
-| `full_check.js` | 全功能路径体检，捕获 console 错误 | 9224 |
-| `pure_check.js` | 透明底直通（pure 模式）不抠图 | 9224 |
-| `ux_verify3.js` | 示例加载、个性化参数、缩放/复位 | 9223 |
-| `theme_shot.js` / `theme2_shot.js` | 深/浅双主题截图对比 | 9222 |
-| `model_compare.js` | 内置抠图模型（MODNet / U²-Net）mask 输出对比 | 9224 |
-| `isnet_diag.js` / `isnet_io.js` / `isnet_once.js` | ISNet 模型输入输出诊断 | 9224 |
+### FAQ
 
-输出路径：以上 6 份回归/截图脚本默认写入仓库内 `docs/ux/<脚本名>-shots/`（如 `final-shots`、`theme-shots`），可用 `--shot-dir=DIR` 或环境变量 `CS_SHOT_DIR` 覆盖；CDP 端口可用 `--cdp-port=N` 或 `CS_CDP_PORT` 覆盖。诊断类脚本（`pure_check.js` 等）不落盘截图，无需输出目录。
+**Q1：必须联网吗？**
+不必须。前端、模型、Three.js 与 ONNX Runtime 均已本地化（`src-web/vendor/`、`src-web/assets/models/`）。在线 Demo 由 GitHub Pages 托管，首次加载模型后可离线使用。
 
-## 抠图模型
+**Q2：我的图片会被上传到服务器吗？**
+不会。抠图与合成全部在浏览器内完成，没有后端接口，也没有遥测。
 
-| 模型 | 大小 | 输入 | 定位 |
-| --- | --- | --- | --- |
-| MODNet FP32 | 25.9MB | 256×256 | 通用平衡（默认） |
-| U²-Net 便携（u2netp） | 4.6MB | 320×320 | 轻量通用，比 MODNet 更稳 |
+**Q3：自动抠图失败或边缘不干净怎么办？**
+- 切换模型精度：MODNet FP32（25.9 MB，通用）↔ U²-Net u2netp（4.6 MB，更稳）。
+- 若原图已是透明 PNG，改用「透明底直通」。
+- 若为白底产品图，改用「色键去白底」（无需加载模型）。
+- 日志在浏览器 DevTools Console，模块前缀为 `[cutout]` / `[app]`。
 
-模型按路径独立缓存，下拉切换自动重新加载。当前仓库内置以上两个模型，移动端 CPU 跑 MODNet FP32 足够；Tauri 阶段可升级原生 ONNX Runtime（自动 CoreML/NNAPI 加速）。
+**Q4：导出的 PNG 是什么？**
+每张 PNG 是当前角度的卡面静态帧（带光泽效果），文件名含角度（如 `card_0deg.png`）；`config.json` 记录本次合成的全部参数，便于复现。
 
-## 功能清单
+**Q5：支持多少张视角图？**
+N ≥ 1。单张时为静态卡面；多张时按角度环形插值生成中间帧。
 
-- **上传**：多图拖拽/点选、逐张角度输入、单张删除、一键清空
-- **抠图**：ONNX 模型推理 / 透明底直通 / 色键去白底三模式
-- **合成**：渐变/星空/纯色/自定义渐变背景、5 种字体、主体缩放、烫金描边
-- **3D 查看**：拖拽惯性、键盘 ←/→（6°/格）、0/90/180/270 跳转 + 自定义角度、自动旋转、任意角度环形插值、双面渲染
-- **效果**：光泽扫光、景深、转速滑块
-- **导出**：PNG（文件名带角度）、config.json、生成进度条、状态提示
-- **主题**：深/浅双主题（右上角 🌙/☀️ 切换，localStorage 记忆）
+### 文档与治理
 
-## 阶段计划
+- [CHANGELOG.md](CHANGELOG.md) — 版本变更（Keep a Changelog 格式）
+- [CONTRIBUTING.md](CONTRIBUTING.md) — 贡献指南与回归脚本入口
+- [docs/release-governance.md](docs/release-governance.md) — 发布治理规范
+- [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) — 第三方组件与模型声明
+- [docs/ux/](docs/ux/) — CDP 回归/诊断脚本（改动 UI 后请运行对应脚本）
 
-1. **第一阶段（已完成）**：纯 Web 版功能闭环，端到端验证通过
-2. **第二阶段（暂缓）**：套 Tauri v2 壳，出 Windows 桌面版
-3. **第三阶段（暂缓）**：Tauri Android / iOS 移动端打包
+### 贡献、安全与支持
 
-## 许可证
+- 欢迎 Issue 与 PR，请遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 与 Conventional Commits。
+- 安全问题请通过 Issue 私下披露，勿公开暴露 PoC。
+- 单人维护的 pre-1.0 项目，改动请小而聚焦。
+
+### 许可证
 
 本项目以 [Apache-2.0](LICENSE) 许可证发布。© 2026 ReSerendipity
+
+---
+
+## English
+
+### Overview
+
+Card Studio is a browser-based, fully client-side generator for multi-view 3D "holographic" rotating trading cards. Upload N photos of the same character or object from different angles; the app cuts out the subject locally, composites a card on Canvas2D, and renders a Three.js viewer that ring-interpolates between views as you drag. It exports angle-named PNG frames plus a `config.json`. No photo ever leaves the device.
+
+Try it online (GitHub Pages, zero install): <https://reserendipity.github.io/Card-Studio/>
+
+### Features
+
+- **Local cutout**: ONNX Runtime Web (WASM) runs bundled MODNet FP32 / U²-Net (u2netp) models; plus "transparent passthrough" and "color-key white removal" zero-model fallbacks.
+- **Canvas2D compositing**: gradient / starfield / solid / custom backgrounds, 5 fonts, gold-foil / white / purple / ink card-name colors, gold / silver / rose-gold borders, corner ornaments toggle.
+- **Three.js 3D viewer**: ring-interpolated rotation between adjacent views, drag inertia, arrow keys (6°/step), 0/90/180/270 jump, arbitrary angle input, auto-rotate, gloss / depth-of-field / speed sliders.
+- **Angle-based export**: `card_<angle>.png` frame sequence + `config.json`.
+- **Dark / light theme** with localStorage memory.
+- **Zero-build frontend**: vanilla JS, no bundler; a Node static server is the only runtime.
+
+### Showcase
+
+![Main UI: upload panel and card parameters](docs/assets/readme-card-studio-1-main.png)
+
+*Fig 1 · Main UI: left upload/parameters panel, right 3D stage (empty state).*
+
+![Generated REZE card](docs/assets/readme-card-studio-2-generated.png)
+
+*Fig 2 · Generated: 4 input views composited into a purple-gradient gold-foil SSR card.*
+
+![Style variant: solid blue background](docs/assets/readme-card-studio-3-style.png)
+
+*Fig 3 · Style variant: solid blue background with serif font, applied instantly.*
+
+![Rotation at 171°](docs/assets/readme-card-studio-4-rotated.png)
+
+*Fig 4 · Rotated view at 171°: ring-interpolated blending with live angle indicator.*
+
+![Module and data-flow architecture](docs/assets/readme-card-studio-architecture.svg)
+
+*Fig 5 · Module and data-flow map (derived from the repository layout; not a runtime screenshot).*
+
+### Quick start
+
+**Prerequisites**
+
+- Node.js ≥ 22 (only for the local static server; the frontend runs in the browser)
+- A modern browser with WebGL 2 (Chrome / Edge / Firefox / Safari)
+
+**Run**
+
+```bash
+git clone https://github.com/ReSerendipity/Card-Studio.git
+cd Card-Studio
+node src-web/server.js
+# open http://127.0.0.1:4173/
+```
+
+Windows users can double-click `start.bat` in the repo root.
+
+**Minimal smoke test**
+
+1. Open the page; you should see the "① Upload views" panel.
+2. Click "Load sample" to load the 4 built-in views.
+3. Click "✦ Generate card"; the status bar should report "生成完成 / done".
+4. Drag on the right stage — the card rotates. The "Export PNG" button becomes enabled.
+
+> First run with "auto cutout (MODNet model)" downloads the ~25.9 MB ONNX model; CPU inference on mobile is fine.
+
+### Requirements & compatibility
+
+- **Desktop browsers**: latest two major versions of Chrome / Edge / Firefox / Safari.
+- **Mobile browsers**: iOS Safari / Android Chrome work in-WebView; prefer the 4.6 MB u2netp model under memory pressure.
+- **Desktop shell**: `src-tauri/` is a Tauri v2 project currently on hold (phase 2). The v1.0.0 release ships Windows `.msi` / `.exe` installers and an Android debug-signed APK.
+
+### Usage
+
+1. Upload N views (click or drag); files are sorted by name. Adjust per-view angles under each thumbnail (defaults to 0/90/180/270).
+2. Pick a cutout mode: auto model / transparent passthrough / color-key white removal.
+3. Fill card parameters: name, number, rarity (N/R/SR/SSR/UR), background style & color, font, border.
+4. Click "Generate card"; progress bar and status update live.
+5. Rotate with drag, tune gloss/depth/speed sliders; export the current frame as PNG or dump all parameters as `config.json`.
+
+### FAQ
+
+**Q1: Does it need internet?**
+No. The frontend, models, Three.js, and ONNX Runtime are all vendored under `src-web/vendor/` and `src-web/assets/models/`. The online demo is hosted on GitHub Pages; once models are loaded the app works offline.
+
+**Q2: Are my photos uploaded?**
+No. Cutout and compositing run entirely in the browser — there is no backend and no telemetry.
+
+**Q3: The auto cutout looks rough. What now?**
+- Switch model precision between MODNet FP32 (25.9 MB, general) and U²-Net u2netp (4.6 MB, more stable).
+- If the source image is already transparent, use "transparent passthrough".
+- For white-background product shots, use "color-key white removal" (no model download).
+- Check the browser DevTools Console for `[cutout]` / `[app]` prefixed warnings.
+
+**Q4: What do the exported PNGs contain?**
+Each PNG is a static card frame at the current angle (with gloss effect), named by angle (e.g. `card_0deg.png`). `config.json` records every compositing parameter for reproducibility.
+
+**Q5: How many views can I use?**
+N ≥ 1. A single view yields a static card; multiple views are ring-interpolated into intermediate frames.
+
+### Docs & governance
+
+- [CHANGELOG.md](CHANGELOG.md) — release history (Keep a Changelog)
+- [CONTRIBUTING.md](CONTRIBUTING.md) — contributing guide and regression entry point
+- [docs/release-governance.md](docs/release-governance.md) — release governance
+- [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) — third-party and model notices
+- [docs/ux/](docs/ux/) — CDP regression/diagnostic scripts (run after UI changes)
+
+### Contributing, security & support
+
+- Issues and PRs welcome; follow [CONTRIBUTING.md](CONTRIBUTING.md) and Conventional Commits.
+- For security issues, please open a private report — do not disclose public PoCs.
+- This is a single-maintainer pre-1.0 project; keep changes small and focused.
+
+### License
+
+Released under [Apache-2.0](LICENSE). © 2026 ReSerendipity
