@@ -19,8 +19,6 @@
 
 上传 N 张同一角色/物体的不同视角位图，Card Studio 在浏览器内完成自动抠图、卡面合成与 3D 旋转查看，并导出按角度命名的 PNG 帧与 `config.json`。全程数据不离开本机。
 
-在线体验（GitHub Pages，零安装）：<https://reserendipity.github.io/Card-Studio/>
-
 ### 核心特性
 
 - **本地推理抠图**：ONNX Runtime Web（WASM）跑内置 MODNet FP32 / U²-Net（u2netp）模型；另有「透明底直通」「色键去白底」两种零模型降级模式。
@@ -138,8 +136,6 @@ N ≥ 1。单张时为静态卡面；多张时按角度环形插值生成中间�
 ### Overview
 
 Card Studio is a browser-based, fully client-side generator for multi-view 3D "holographic" rotating trading cards. Upload N photos of the same character or object from different angles; the app cuts out the subject locally, composites a card on Canvas2D, and renders a Three.js viewer that ring-interpolates between views as you drag. It exports angle-named PNG frames plus a `config.json`. No photo ever leaves the device.
-
-Try it online (GitHub Pages, zero install): <https://reserendipity.github.io/Card-Studio/>
 
 ### Features
 
