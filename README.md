@@ -42,9 +42,9 @@
 
 *图 3 · 卡面参数面板：背景样式、字体、卡名字色、边框样式、角饰、主体大小、随机种子等选项。*
 
-![旋转 3D 预览视角](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
+![星空背景变体：银边白字卡面](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
 
-*图 4 · 旋转预览：相邻视角帧以环形插值呈现，本图为背面视角（180°）。*
+*图 4 · 另一组参数：星空背景、银边、白色卡名字、宋体；底部光泽/景深/转速滑块与角度跳转按钮为真实运行控件。*
 
 ![模块与数据流架构](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
@@ -160,9 +160,9 @@ Card Studio is a browser-based, fully client-side generator for multi-view 3D "h
 
 *Fig 3 · Card parameters: background style, font, name color, border, corners, subject scale, seed.*
 
-![Rotated 3D preview](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
+![Starfield variant: silver border, white name](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
 
-*Fig 4 · Rotated preview: ring-interpolated between adjacent views; this frame shows the back (180°) view.*
+*Fig 4 · Another parameter set: starfield background, silver border, white card name, serif font; bottom gloss/depth/speed sliders and angle-jump buttons are live controls.*
 
 ![Module and data-flow architecture](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
