@@ -30,21 +30,21 @@
 
 ### 展示
 
-![主界面：上传视角图与卡面参数面板](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main.png)
+![主界面：已上传 4 张真实样例视角图](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main-20261026.png)
 
-*图 1 · 主界面：左侧上传与参数面板，右侧 3D 查看舞台（空状态）。*
+*图 1 · 主界面：4 张内置样例视角图已载入，左侧为上传/抠图/卡面参数面板。*
 
-![生成完成：REZE 闪卡](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated.png)
+![生成完成：REZE 紫渐变闪卡](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated-20261026.png)
 
-*图 2 · 生成完成：4 张视角图抠图合成后，紫渐变金边闪卡，SSR 稀有度，卡面烫金标题。*
+*图 2 · 生成完成：色键去白底后 Canvas2D 合成的卡面，REZE 标题、SSR 稀有度、No.001 编号。*
 
-![背景样式变体：纯色蓝](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style.png)
+![样式与参数面板](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style-20261026.png)
 
-*图 3 · 背景样式变体：切换为纯色蓝、宋体字，展示参数即时生效。*
+*图 3 · 卡面参数面板：背景样式、字体、卡名字色、边框样式、角饰、主体大小、随机种子等选项。*
 
-![任意角度旋转查看](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated.png)
+![旋转 3D 预览视角](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
 
-*图 4 · 171° 旋转视角：相邻帧环形插值，角度与混合比实时显示。*
+*图 4 · 旋转预览：相邻视角帧以环形插值呈现，本图为背面视角（180°）。*
 
 ![模块与数据流架构](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
@@ -148,21 +148,21 @@ Card Studio is a browser-based, fully client-side generator for multi-view 3D "h
 
 ### Showcase
 
-![Main UI: upload panel and card parameters](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main.png)
+![Main UI: 4 sample views loaded](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-1-main-20261026.png)
 
-*Fig 1 · Main UI: left upload/parameters panel, right 3D stage (empty state).*
+*Fig 1 · Main UI: 4 built-in sample views loaded; left panel holds upload / cutout / card parameters.*
 
-![Generated REZE card](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated.png)
+![Generated REZE purple-gradient card](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-2-generated-20261026.png)
 
-*Fig 2 · Generated: 4 input views composited into a purple-gradient gold-foil SSR card.*
+*Fig 2 · Generated: Canvas2D card after color-key white removal — REZE title, SSR badge, No.001.*
 
-![Style variant: solid blue background](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style.png)
+![Style and parameters panel](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-3-style-20261026.png)
 
-*Fig 3 · Style variant: solid blue background with serif font, applied instantly.*
+*Fig 3 · Card parameters: background style, font, name color, border, corners, subject scale, seed.*
 
-![Rotation at 171°](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated.png)
+![Rotated 3D preview](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-4-rotated-20261026.png)
 
-*Fig 4 · Rotated view at 171°: ring-interpolated blending with live angle indicator.*
+*Fig 4 · Rotated preview: ring-interpolated between adjacent views; this frame shows the back (180°) view.*
 
 ![Module and data-flow architecture](https://gcore.jsdelivr.net/gh/ReSerendipity/Card-Studio@main/docs/assets/readme-card-studio-architecture.svg)
 
