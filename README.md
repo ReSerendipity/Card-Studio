@@ -8,6 +8,7 @@
 [![last commit](https://img.shields.io/github/last-commit/ReSerendipity/Card-Studio)](https://github.com/ReSerendipity/Card-Studio/commits/main)
 ![JavaScript](https://img.shields.io/badge/JS-vanilla-yellow)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Governance](https://img.shields.io/badge/governance-ReSerendipity%2F.github-blue)](https://github.com/ReSerendipity/.github/tree/main/governance)
 
 **[中文](#中文) · [English](#english)**
 
